@@ -26,7 +26,7 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
       - key: FRONTEND_URL
-        value: https://embu-hardwarepos.vercel.app
+        value: https://temp-frontend-placeholder.example.com
 
 databases:
   - name: hardware-pos-db
