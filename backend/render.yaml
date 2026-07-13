@@ -16,11 +16,15 @@ services:
           name: hardware-pos-db
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true
+        value: d71263dc63ffbd3bea870678dca904437578a279914e067ed41ac1d57f691087
       - key: JWT_REFRESH_SECRET
-        generateValue: true
+        value: 6530d415a5e3a30896a9d9252aee36b8a8a21ffb257635dfe63c2647c46cb302
       - key: BCRYPT_SALT_ROUNDS
         value: 12
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
       - key: FRONTEND_URL
         value: https://your-frontend-url.vercel.app
 
