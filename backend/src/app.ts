@@ -38,6 +38,10 @@ if (env.IS_PROD) {
   });
 }
 
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", service: "hardware-store-backend" });
+});
+
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api", routes);
 app.use(notFoundHandler);
