@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist)",
+      "Bash(npm run *)",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}' --max-time 5)",
+      "Bash(curl -s -o /dev/null -w \"Products page: %{http_code}\\\\n\" --max-time 15 http://localhost:3000/products)",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@buildmart.co.ke\",\"password\":\"admin123\"}' --max-time 5)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s -X POST \"http://localhost:5000/api/auth/login\" -H \"Content-Type: application/json\" -d '{\"email\":\"admin@hardware.com\",\"password\":\"Admin@123\"}')",
+      "Bash(curl -s -X GET 'http://localhost:5000/api/categories?page=1&limit=5' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMzA5NjQ0My04ODgyLTRmMWEtYTIxZC02NTIwZjc1MTU5MGYiLCJlbWFpbCI6ImFkbWluQGhhcmR3YXJlLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4MzkzMzcyNiwiZXhwIjoxNzg0MDIwMTI2fQ.0wufglra_OpZcJo9Or-XiDianWw2ZpVNGdhUOahe3Os')",
+      "Bash(curl -s -X PUT http://localhost:5000/api/categories/04c701b3-7330-4cec-bda1-8bbedb3c476e -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMzA5NjQ0My04ODgyLTRmMWEtYTIxZC02NTIwZjc1MTU5MGYiLCJlbWFpbCI6ImFkbWluQGhhcmR3YXJlLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4MzkzMzcyNiwiZXhwIjoxNzg0MDIwMTI2fQ.0wufglra_OpZcJo9Or-XiDianWw2ZpVNGdhUOahe3Os' -H 'Content-Type: application/json' -d '{\"description\":\"Farming tools, fertilizers, agro supplies, and irrigation equipment\",\"color\":\"green\"}')",
+      "Bash(curl -s -X PUT http://localhost:5000/api/categories/cf6ebd3b-695a-4bcf-8bb0-ae11d1f20232 -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMzA5NjQ0My04ODgyLTRmMWEtYTIxZC02NTIwZjc1MTU5MGYiLCJlbWFpbCI6ImFkbWluQGhhcmR3YXJlLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4MzkzMzcyNiwiZXhwIjoxNzg0MDIwMTI2fQ.0wufglra_OpZcJo9Or-XiDianWw2ZpVNGdhUOahe3Os' -H 'Content-Type: application/json' -d '{\"name\":\"Building Materials\",\"description\":\"Cement, sand, aggregates, bricks, and blocks\",\"color\":\"cyan\"}')"
+    ]
+  }
+}
