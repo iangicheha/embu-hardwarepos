@@ -20,17 +20,29 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(helmet());
 app.use(compression());
+const allowedOrigins = env.FRONTEND_URL.split(",").map((url) => url.trim());
+
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (no origin header), exact matches,
+      // and any Vercel preview/branch URL for this project.
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/hardwarepos-[a-z0-9-]+\.vercel\.app$/.test(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );
 app.use(cookieParser());
-// 5mb lets a 2MB logo be uploaded as an inline data: URL (base64 expands ~33%)
-// plus the rest of the settings payload.
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true, limit: "5mb" }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(apiLimiter);
 
 if (env.IS_PROD) {
