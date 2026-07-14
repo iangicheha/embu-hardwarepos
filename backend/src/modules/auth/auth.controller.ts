@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import authService from "./auth.service";
 
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    [key: string]: any;
+  };
+}
+
 class AuthController {
   async register(
     req: Request,
@@ -70,7 +77,7 @@ class AuthController {
   }
 
   async logout(
-    req: Request,
+    req: AuthRequest,
     res: Response
   ) {
     try {
