@@ -6,9 +6,10 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "admin@hardware.com" },
-    update: {},
+    update: { username: "admin" },
     create: {
       fullName: "System Admin",
+      username: "admin",
       email: "admin@hardware.com",
       phone: "+254700000000",
       passwordHash: password,
@@ -35,15 +36,15 @@ async function main() {
 
   const categories = [
     { name: "Building Materials", description: "Cement, sand, aggregates, bricks, and blocks" },
-    { name: "Plumbing", description: "Pipes, fittings, and fixtures" },
+    { name: "Plumbing", description: "Pipes, fittings, and fixtures"},
     { name: "Electrical", description: "Wiring and electrical supplies" },
     { name: "Paints & Finishes", description: "Paints, primers, and finishing products" },
-    { name: "Tools & Equipment", description: "Hand and power tools, machinery, and equipment" },
-    { name: "Fasteners & Locks", description: "Nails, screws, bolts, padlocks, and security hardware" },
-    { name: "Roofing", description: "Roofing sheets, tiles, gutters, and accessories" },
+    { name: "Tools & Equipment", description: "Hand and power tools,machinery, and equipment" },
+    { name: "Fasteners & Locks", description: "Nails, screws, bolts,padlocks, and security hardware" },
+    { name: "Roofing", description: "Roofing sheets, tiles, gutters,and accessories" },
     { name: "Agricultural Supplies", description: "Farming tools, fertilizers, and agro supplies" },
     { name: "Safety Equipment", description: "PPE, gloves, helmets, and safety gear" },
-    { name: "General Hardware", description: "Miscellaneous hardware items" }
+    { name: "General Hardware", description: "Miscellaneous hardwareitems" }
   ];
 
   for (const category of categories) {

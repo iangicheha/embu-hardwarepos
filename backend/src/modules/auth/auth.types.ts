@@ -7,12 +7,13 @@ export interface JwtPayload {
 }
 
 export interface LoginDto {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterDto {
   fullName: string;
+  username: string;
   phone?: string;
   email: string;
   password: string;

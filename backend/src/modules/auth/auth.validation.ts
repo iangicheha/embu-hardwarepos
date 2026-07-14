@@ -14,6 +14,14 @@ const emailSchema = z
   .toLowerCase()
   .email("Invalid email");
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be at most 30 characters")
+  .regex(/^[a-z0-9_.]+$/, "Username can only contain letters, numbers, dots, and underscores");
+
 const phoneSchema = z
   .string()
   .trim()
@@ -24,6 +32,7 @@ const phoneSchema = z
 
 export const registerSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
+  username: usernameSchema,
   email: emailSchema,
   phone: phoneSchema,
   password: passwordSchema,
@@ -31,7 +40,7 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: emailSchema,
+  username: usernameSchema,
   password: z.string().min(1).max(72)
 });
 

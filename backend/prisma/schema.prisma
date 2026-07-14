@@ -37,6 +37,7 @@ model User {
   id             String   @id @default(uuid())
 
   fullName       String
+  username       String?  @unique
   email          String   @unique
   phone          String?
 

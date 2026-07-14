@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await loginUser(email, password);
+      const response = await loginUser(username, password);
       const { accessToken, refreshToken, user } = response.data;
       window.localStorage.setItem("accessToken", accessToken);
       window.localStorage.setItem("refreshToken", refreshToken);
@@ -53,21 +53,23 @@ export default function LoginPage() {
             <Wrench className="h-6 w-6" />
           </div>
           <div>
-            <CardTitle>Home Depot Store</CardTitle>
+            <CardTitle>Embu Hardware</CardTitle>
             <CardDescription>Sign in to access the ERP dashboard</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
               />
             </div>
             <div className="space-y-2">

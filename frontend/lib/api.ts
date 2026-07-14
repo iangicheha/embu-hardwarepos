@@ -131,10 +131,10 @@ type AuthResponse = {
 };
 
 // --- Auth ---
-export async function loginUser(email: string, password: string) {
+export async function loginUser(username: string, password: string) {
   const res = await request<AuthResponse>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ username, password })
   });
   setTokens(res.data.accessToken, res.data.refreshToken);
   return res;

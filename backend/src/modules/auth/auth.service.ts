@@ -69,12 +69,13 @@ class AuthService {
 
   async register(data: RegisterDto) {
     const email = data.email.toLowerCase();
+    const username = data.username.toLowerCase();
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
+    const existingUser = await prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] }
     });
     if (existingUser) {
-      throw new AppError("User with this email already exists", 409);
+      throw new AppError("User with this email or username already exists", 409);
     }
 
     const hashedPassword = await bcrypt.hash(
@@ -86,6 +87,7 @@ class AuthService {
       const createdUser = await tx.user.create({
         data: {
           fullName: data.fullName.trim(),
+          username,
           email,
           phone: data.phone,
           passwordHash: hashedPassword,
@@ -118,6 +120,7 @@ class AuthService {
       user: {
         id: user.id,
         fullName: user.fullName,
+        username: user.username,
         email: user.email,
         role: user.role
       },
@@ -127,11 +130,11 @@ class AuthService {
   }
 
   async login(data: LoginDto) {
-    const email = data.email.toLowerCase();
-    const user = await prisma.user.findUnique({ where: { email } });
+    const username = data.username.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { username } });
 
     if (!user) {
-      await writeAuditLog(undefined, "FAILED_LOGIN", `Unknown email: ${email}`);
+      await writeAuditLog(undefined, "FAILED_LOGIN", `Unknown username: ${username}`);
       throw new AppError("Invalid credentials", 401);
     }
 
@@ -174,6 +177,7 @@ class AuthService {
       user: {
         id: user.id,
         fullName: user.fullName,
+        username: user.username,
         email: user.email,
         role: user.role
       },
