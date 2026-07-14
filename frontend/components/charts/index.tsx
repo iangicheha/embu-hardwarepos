@@ -368,6 +368,3 @@ export function RevenueTrendChart() {
     </Card>
   );
 }
-
-// Keep the original components for backward compatibility, but export the new combined one
-export { DailySalesChart, MonthlySalesChart };
