@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, LogOut, Menu, Search, Settings, User } from "lucide-react";
+import { Bell, Images, LogOut, Menu, Search, Settings, User } from "lucide-react";
 import { currentUser, notifications, products, orders, suppliers } from "@/lib/data";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -154,6 +154,11 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <Link href="/gallery">
+          <Button variant="ghost" size="icon" title="Gallery">
+            <Images className="h-4 w-4" />
+          </Button>
+        </Link>
         <Link href="/notifications">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-4 w-4" />
