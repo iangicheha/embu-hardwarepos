@@ -25,6 +25,7 @@ const logoUrlSchema = z
   .max(DATA_URL_MAX, "Logo is too large")
   .refine(
     (val) => {
+      if (val === "") return true;
       if (val.startsWith("data:")) {
         return /^data:image\/[a-zA-Z0-9+.-]+;base64,[A-Za-z0-9+/=]+$/.test(val);
       }
@@ -38,7 +39,8 @@ const logoUrlSchema = z
     { message: "logoUrl must be a valid http(s) URL or data: URL" }
   )
   .nullable()
-  .optional();
+  .optional()
+  .transform((val) => (val === "" ? null : val));
 
 export const updateSettingsSchema = z.object({
   businessName: z.string().trim().min(2).max(200).optional(),
