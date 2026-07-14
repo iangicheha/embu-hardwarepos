@@ -27,8 +27,10 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+// 5mb lets a 2MB logo be uploaded as an inline data: URL (base64 expands ~33%)
+// plus the rest of the settings payload.
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 app.use(apiLimiter);
 
 if (env.IS_PROD) {

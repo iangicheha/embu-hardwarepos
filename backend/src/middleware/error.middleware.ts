@@ -64,6 +64,25 @@ export const errorHandler = (
     });
   }
 
+  // Respect status codes set by body-parser / express.json (e.g. 413
+  // "request entity too large" or 400 "malformed JSON"), so they don't
+  // get reported as 500 Internal Server Error.
+  const expressErr = err as Error & { status?: number; statusCode?: number; type?: string };
+  if (expressErr.status === 413 || expressErr.type === "entity.too.large") {
+    logger.warn("Payload too large", { message: err.message });
+    return res.status(413).json({
+      success: false,
+      message: "Payload too large"
+    });
+  }
+  if (expressErr.status === 400 || expressErr.type === "entity.parse.failed") {
+    logger.warn("Bad request", { message: err.message });
+    return res.status(400).json({
+      success: false,
+      message: "Bad request"
+    });
+  }
+
   logger.error("Unhandled error", err);
 
   return res.status(500).json({
