@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { currentUser } from "@/lib/data";
+import { getSettings } from "@/lib/api";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,19 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const [businessName, setBusinessName] = useState("Hardware Store");
+
+  useEffect(() => {
+    getSettings()
+      .then((res) => {
+        if (res?.data?.businessName) {
+          setBusinessName(res.data.businessName);
+        }
+      })
+      .catch(() => {
+        // Keep default name on error
+      });
+  }, []);
 
   return (
     <aside
@@ -62,7 +76,7 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
         {!collapsed && (
           <div className="flex flex-col overflow-hidden">
             <span className="truncate text-sm font-bold text-sidebar-foreground">
-              Hardware Store
+              {businessName}
             </span>
             <span className="truncate text-xs text-muted-foreground">ERP System</span>
           </div>
