@@ -21,7 +21,7 @@ class SettingsService {
           })
         : await tx.setting.create({
             data: {
-              businessName: "Hardware Store",
+              businessName: "Home Depot Store",
               ...data
             } as Prisma.SettingCreateInput
           });

@@ -470,13 +470,13 @@ export const notifications: Notification[] = [
 ];
 
 export const businessSettings: BusinessSettings = {
-  businessName: "BuildMart Hardware Store",
+  businessName: "Home Depot Store",
   phone: "+254 700 123 456",
   email: "info@buildmart.co.ke",
   address: "Tom Mboya Street, Nairobi CBD, Kenya",
   taxRate: 16,
   currency: "KES",
-  receiptFooter: "Thank you for shopping at BuildMart! Goods once sold are not returnable.",
+  receiptFooter: "Thank you for shopping at Home Depot Store! Goods once sold are not returnable.",
 };
 
 export const dailySalesData = [

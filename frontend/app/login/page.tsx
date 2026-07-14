@@ -53,7 +53,7 @@ export default function LoginPage() {
             <Wrench className="h-6 w-6" />
           </div>
           <div>
-            <CardTitle>Embu Hardware</CardTitle>
+            <CardTitle>Home Depot Store</CardTitle>
             <CardDescription>Sign in to access the ERP dashboard</CardDescription>
           </div>
         </CardHeader>

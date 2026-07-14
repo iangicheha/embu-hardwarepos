@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Hardware Store ERP",
+  title: "Home Depot Store ERP",
   description: "Enterprise-grade hardware store management system",
 };
 
