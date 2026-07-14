@@ -38,7 +38,16 @@ export default function SettingsPage() {
       try {
         setLoading(true);
         const res = await getSettings();
-        const data = res.data || {};
+        const data = (res.data ?? {}) as {
+          businessName?: string;
+          logoUrl?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          address?: string | null;
+          taxRate?: number | string | null;
+          currency?: string | null;
+          receiptFooter?: string | null;
+        };
         setSettings({
           businessName: data.businessName || "",
           logoUrl: data.logoUrl || "",

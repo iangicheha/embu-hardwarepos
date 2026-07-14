@@ -1,40 +1,102 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import authService from "./auth.service";
-import { catchAsync } from "../../utils/catchAsync";
-import { successResponse } from "../../utils/apiResponse";
-import { AuthenticatedRequest } from "../../types/request";
 
 class AuthController {
-  register = catchAsync(
-    async (req: AuthenticatedRequest, res: Response) => {
-      const result = await authService.register(req.body);
-      successResponse(res, result, "User registered successfully", 201);
+  async register(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const result =
+        await authService.register(req.body);
+
+      res.status(201).json({
+        success: true,
+        message:
+          "User registered successfully",
+        data: result
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
-  );
+  }
 
-  login = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-    const result = await authService.login(req.body);
-    successResponse(res, result, "Login successful");
-  });
+  async login(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const result =
+        await authService.login(req.body);
 
-  refreshToken = catchAsync(
-    async (req: AuthenticatedRequest, res: Response) => {
+      res.status(200).json({
+        success: true,
+        message: "Login successful",
+        data: result
+      });
+    } catch (error: any) {
+      res.status(401).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async refreshToken(
+    req: Request,
+    res: Response
+  ) {
+    try {
       const { refreshToken } = req.body;
-      const result = await authService.refreshToken(refreshToken);
-      successResponse(res, result, "Token refreshed");
-    }
-  );
 
-  logout = catchAsync(
-    async (req: AuthenticatedRequest, res: Response) => {
-      if (!req.user) {
-        throw new Error("User not authenticated");
-      }
-      const refreshToken = req.body?.refreshToken as string | undefined;
-      await authService.logout(req.user.userId, refreshToken);
-      successResponse(res, null, "Logout successful");
+      const result =
+        await authService.refreshToken(
+          refreshToken
+        );
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      res.status(401).json({
+        success: false,
+        message: error.message
+      });
     }
-  );
+  }
+
+  async logout(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized"
+        });
+        return;
+      }
+
+      await authService.logout(
+        req.user.userId
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Logout successful"
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
 }
 
 export default new AuthController();

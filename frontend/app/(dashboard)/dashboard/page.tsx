@@ -58,8 +58,8 @@ export default function DashboardPage() {
       getLowStockProducts().catch(() => null)
     ]).then(([summaryRes, ordersRes, restocksRes, lowStockRes]) => {
       setSummary(summaryRes?.data ?? null);
-      setOrders(ordersRes?.data?.items ?? []);
-      setRestocks(restocksRes?.data?.items ?? []);
+      setOrders(ordersRes?.data?.orders ?? []);
+      setRestocks(restocksRes?.data?.restocks ?? []);
       setLowStockProducts(Array.isArray(lowStockRes?.data) ? lowStockRes.data : []);
     });
   }, []);

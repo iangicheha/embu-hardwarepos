@@ -47,7 +47,13 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: "admin" | "worker";
+  }>({
     fullName: "",
     email: "",
     phone: "",
@@ -176,7 +182,7 @@ export default function UsersPage() {
               </div>
               <div className="grid gap-2">
                 <Label>Role</Label>
-                <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
+                <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v as "admin" | "worker"})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>

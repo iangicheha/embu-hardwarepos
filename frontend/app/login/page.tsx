@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -36,10 +37,12 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
-      <img 
-        src="/mitchell-luo-G5i9LQ7sPOw-unsplash.jpg" 
-        alt="Hardware Store Background" 
-        className="absolute inset-0 w-full h-full object-cover"
+      <Image
+        src="/mitchell-luo-G5i9LQ7sPOw-unsplash.jpg"
+        alt="Hardware Store Background"
+        fill
+        priority
+        className="object-cover"
       />
       <div className="absolute inset-0 bg-black/40" />
       <Card className="relative w-full max-w-md z-10">
