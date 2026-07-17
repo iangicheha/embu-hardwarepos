@@ -837,7 +837,7 @@ type Settings = {
   receiptFooter?: string | null;
 };
 
-type Printer = {
+export type Printer = {
   id: string;
   name: string;
   printerType: "THERMAL" | "INKJET" | "LASER";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Printer, Wifi, Usb, Bluetooth, Building2, Monitor, Trash2, CheckCircle, Settings as SettingsIcon, Loader2 } from "lucide-react";
+import { Plus, Printer as PrinterIcon, Wifi, Usb, Bluetooth, Building2, Monitor, Trash2, CheckCircle, Settings as SettingsIcon, Loader2 } from "lucide-react";
 import { getPrinters, createPrinter, updatePrinter, deletePrinter, setDefaultPrinter, testPrinter, type Printer } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,14 +68,23 @@ export default function PrintersPage() {
   const [editingPrinter, setEditingPrinter] = useState<Printer | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    printerType: "THERMAL" | "STANDARD" | string;
+    connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS" | string;
+    ipAddress: string;
+    port: string;
+    isDefault: boolean;
+    paperSize: "58MM" | "80MM" | "A4" | string;
+    autoPrint: boolean;
+  }>({
     name: "",
-    printerType: "THERMAL" as const,
-    connectionType: "USB" as const,
+    printerType: "THERMAL",
+    connectionType: "USB",
     ipAddress: "",
     port: "",
     isDefault: false,
-    paperSize: "80MM" as const,
+    paperSize: "80MM",
     autoPrint: false,
   });
 
@@ -352,7 +361,7 @@ export default function PrintersPage() {
         <CardContent>
           {printers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No printers configured. Click "Add Printer" to get started.
+              No printers configured. Click &quot;Add Printer&quot; to get started.
             </div>
           ) : (
             <Table>
@@ -369,7 +378,7 @@ export default function PrintersPage() {
               </TableHeader>
               <TableBody>
                 {printers.map((printer) => {
-                  const Icon = connectionTypeIcons[printer.connectionType] || Printer;
+                  const Icon = connectionTypeIcons[printer.connectionType] || PrinterIcon;
                   return (
                     <TableRow key={printer.id}>
                       <TableCell className="font-medium">
