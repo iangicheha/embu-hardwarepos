@@ -172,36 +172,36 @@ export default function LoginPage() {
             }}
           />
 
-          <div className="relative z-10 w-full max-w-md">
-            <div className="rounded-3xl bg-white p-6 md:p-7 shadow-2xl">
+          <div className="relative z-10 w-full max-w-md max-h-full overflow-y-auto">
+            <div className="rounded-3xl bg-white p-5 md:p-6 shadow-2xl">
               {/* Avatar */}
               <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
-                  <User className="h-6 w-6 text-red-600" strokeWidth={1.75} />
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50">
+                  <User className="h-5 w-5 text-red-600" strokeWidth={1.75} />
                 </div>
               </div>
 
               {/* Heading */}
-              <div className="mt-3 text-center">
-                <h1 className="text-2xl font-bold text-slate-900">
+              <div className="mt-2 text-center">
+                <h1 className="text-xl font-bold text-slate-900">
                   Welcome Back!
                 </h1>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-0.5 text-xs text-slate-500">
                   Sign in to your account to continue
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
+              <form onSubmit={handleSubmit} className="mt-4 space-y-2.5">
                 <div>
                   <label
                     htmlFor="username"
-                    className="mb-1 block text-sm font-semibold text-slate-700"
+                    className="mb-0.5 block text-xs font-semibold text-slate-700"
                   >
                     Username
                   </label>
                   <div className="relative">
-                    <User className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       id="username"
                       type="text"
@@ -211,7 +211,7 @@ export default function LoginPage() {
                       required
                       autoCapitalize="none"
                       autoCorrect="off"
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                      className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     />
                   </div>
                 </div>
@@ -219,12 +219,12 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="password"
-                    className="mb-1 block text-sm font-semibold text-slate-700"
+                    className="mb-0.5 block text-xs font-semibold text-slate-700"
                   >
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -232,43 +232,43 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                      className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                       tabIndex={-1}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-[18px] w-[18px]" />
+                        <EyeOff className="h-4 w-4" />
                       ) : (
-                        <Eye className="h-[18px] w-[18px]" />
+                        <Eye className="h-4 w-4" />
                       )}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-0.5">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-600">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-red-600 focus:ring-red-500"
                     />
                     Remember me
                   </label>
                   <a
                     href="/forgot-password"
-                    className="text-sm font-medium text-red-600 hover:text-red-700"
+                    className="text-xs font-medium text-red-600 hover:text-red-700"
                   >
                     Forgot Password?
                   </a>
                 </div>
 
                 {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-600">
                     {error}
                   </div>
                 )}
@@ -276,41 +276,41 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-red-600 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <LogIn className="h-[18px] w-[18px]" />
+                  <LogIn className="h-4 w-4" />
                   {loading ? "Signing In..." : "Login"}
                 </button>
 
                 {/* Divider */}
-                <div className="relative pt-1">
+                <div className="relative pt-0.5">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-white px-3 text-xs font-medium text-slate-400">
+                    <span className="bg-white px-3 text-[11px] font-medium text-slate-400">
                       OR
                     </span>
                   </div>
                 </div>
 
-                <p className="text-center text-sm text-slate-500">Login as</p>
+                <p className="text-center text-xs text-slate-500">Login as</p>
 
                 {/* Role selector */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {roles.map((r) => (
                     <button
                       key={r.key}
                       type="button"
                       onClick={() => setRole(r.key)}
-                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-sm font-medium transition ${
+                      className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 text-xs font-medium transition ${
                         role === r.key
                           ? "border-red-500 bg-red-50 text-red-600"
                           : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                       }`}
                     >
                       <User
-                        className={`h-4.5 w-4.5 ${
+                        className={`h-3.5 w-3.5 ${
                           role === r.key ? "text-red-600" : "text-slate-400"
                         }`}
                       />
@@ -319,9 +319,9 @@ export default function LoginPage() {
                   ))}
                 </div>
 
-                <div className="pt-2 text-center">
-                  <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
-                    <ShieldCheck className="h-3.5 w-3.5" />
+                <div className="pt-0.5 text-center">
+                  <p className="flex items-center justify-center gap-1 text-[11px] text-slate-500">
+                    <ShieldCheck className="h-3 w-3" />
                     Authorized access only
                   </p>
                 </div>
