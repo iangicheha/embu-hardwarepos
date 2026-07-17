@@ -587,6 +587,79 @@ export async function deleteNotification(id: string) {
   });
 }
 
+// --- Printers ---
+export async function getPrinters(page = 1, limit = 20) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  return request<{ data: { printers: Printer[]; pagination: Pagination } }>(
+    `/printers?${params}`
+  );
+}
+
+export async function getPrinter(id: string) {
+  return request<{ data: Printer }>(`/printers/${id}`);
+}
+
+export async function createPrinter(data: {
+  name: string;
+  printerType: "THERMAL" | "INKJET" | "LASER";
+  connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS";
+  ipAddress?: string;
+  port?: string;
+  isDefault?: boolean;
+  paperSize: "58MM" | "80MM" | "A4";
+  autoPrint?: boolean;
+}) {
+  return request<{ data: Printer }>("/printers", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+}
+
+export async function updatePrinter(
+  id: string,
+  data: Partial<{
+    name: string;
+    printerType: "THERMAL" | "INKJET" | "LASER";
+    connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS";
+    ipAddress?: string;
+    port?: string;
+    isDefault?: boolean;
+    paperSize: "58MM" | "80MM" | "A4";
+    autoPrint?: boolean;
+  }>
+) {
+  return request<{ data: Printer }>(`/printers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data)
+  });
+}
+
+export async function deletePrinter(id: string) {
+  return request<{ data: null }>(`/printers/${id}`, {
+    method: "DELETE"
+  });
+}
+
+export async function setDefaultPrinter(id: string) {
+  return request<{ data: null }>(`/printers/${id}/default`, {
+    method: "PATCH"
+  });
+}
+
+export async function getDefaultPrinter() {
+  return request<{ data: Printer | null }>("/printers/default/current");
+}
+
+export async function testPrinter(id: string) {
+  return request<{ data: { success: boolean; message: string } }>(
+    `/printers/${id}/test`,
+    { method: "POST" }
+  );
+}
+
 // --- Types (mirrored from backend) ---
 export type Paginated<T> = {
   items: T[];
@@ -653,6 +726,7 @@ type CreateProductInput = {
   sellingPrice: number;
   quantity: number;
   reorderLevel: number;
+  imageUrl?: string;
   categoryId?: string;
   supplierId?: string;
 };
@@ -761,4 +835,18 @@ type Settings = {
   taxRate?: number | null;
   currency?: string | null;
   receiptFooter?: string | null;
+};
+
+type Printer = {
+  id: string;
+  name: string;
+  printerType: "THERMAL" | "INKJET" | "LASER";
+  connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS";
+  ipAddress?: string | null;
+  port?: string | null;
+  isDefault: boolean;
+  paperSize: "58MM" | "80MM" | "A4";
+  autoPrint: boolean;
+  createdAt: string;
+  updatedAt: string;
 };

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Images, LogOut, Menu, Search, Settings, User } from "lucide-react";
-import { currentUser, notifications, products, orders, suppliers } from "@/lib/data";
+import { Bell, LogOut, Menu, Search, Settings, User } from "lucide-react";
+import { currentUser, products, orders, suppliers } from "@/lib/data";
+import { getNotifications } from "@/lib/api";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,9 +44,31 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Fetch notifications on mount and set up polling for real-time updates
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await getNotifications(1, 50);
+        const notifData = res.data?.notifications ?? [];
+        setNotifications(notifData);
+        setUnreadCount(notifData.filter((n: any) => !n.isRead).length);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+
+    // Poll every 30 seconds for real-time updates
+    const interval = setInterval(fetchNotifications, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -154,11 +176,6 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-1">
-        <Link href="/gallery">
-          <Button variant="ghost" size="icon" title="Gallery">
-            <Images className="h-4 w-4" />
-          </Button>
-        </Link>
         <Link href="/notifications">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-4 w-4" />

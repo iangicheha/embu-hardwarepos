@@ -35,6 +35,7 @@ interface ApiProduct {
   quantity: number;
   sellingPrice: string | number;
   buyingPrice: string | number;
+  imageUrl?: string | null;
   category?: { id: string; name: string } | null;
 }
 
@@ -175,6 +176,8 @@ export default function POSPage() {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   }
 
+  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
+
   async function completeSale() {
     if (cart.length === 0) return;
 
@@ -192,7 +195,8 @@ export default function POSPage() {
         customerName: "Walk-in Customer"
       };
 
-      await createOrder(orderData);
+      const result = await createOrder(orderData);
+      setCompletedOrderId(result.data.id);
 
       setSaleComplete(true);
       // Optimistically decrement local stock so the UI reflects reality
@@ -202,11 +206,15 @@ export default function POSPage() {
           return cartItem ? { ...p, quantity: p.quantity - cartItem.quantity } : p;
         })
       );
+
+      // Trigger dashboard refresh event for real-time updates
+      window.dispatchEvent(new CustomEvent('dashboard-refresh'));
       setTimeout(() => {
         setCart([]);
         setDiscount(0);
         setSaleComplete(false);
-      }, 2000);
+        setCompletedOrderId(null);
+      }, 5000);
     } catch (err: any) {
       setError(err.message || "Failed to complete sale");
       console.error(err);
@@ -215,14 +223,44 @@ export default function POSPage() {
     }
   }
 
-  function handlePrintReceipt() {
-    if (cart.length === 0) return;
-    setError("Complete a sale first to print receipt");
+  async function handlePrintReceipt() {
+    if (!completedOrderId) {
+      setError("Complete a sale first to print receipt");
+      return;
+    }
+    try {
+      const blob = await downloadReceipt(completedOrderId);
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url);
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(url);
+        };
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to print receipt");
+    }
   }
 
-  function handleDownloadPdf() {
-    if (cart.length === 0) return;
-    setError("Complete a sale first to download PDF");
+  async function handleDownloadPdf() {
+    if (!completedOrderId) {
+      setError("Complete a sale first to download PDF");
+      return;
+    }
+    try {
+      const blob = await downloadReceipt(completedOrderId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt-${completedOrderId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.message || "Failed to download PDF");
+    }
   }
 
   if (loading) {
@@ -297,7 +335,7 @@ export default function POSPage() {
                     <div className="relative h-32 w-full bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={PLACEHOLDER_IMAGE}
+                        src={product.imageUrl || PLACEHOLDER_IMAGE}
                         alt={product.name}
                         className="h-full w-full object-cover"
                       />
@@ -455,11 +493,11 @@ export default function POSPage() {
                   Complete Sale
                 </Button>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" disabled={cart.length === 0} onClick={handlePrintReceipt}>
+                  <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handlePrintReceipt}>
                     <Printer className="mr-1 h-4 w-4" />
                     Print Receipt
                   </Button>
-                  <Button variant="outline" size="sm" disabled={cart.length === 0} onClick={handleDownloadPdf}>
+                  <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handleDownloadPdf}>
                     <Download className="mr-1 h-4 w-4" />
                     Download PDF
                   </Button>

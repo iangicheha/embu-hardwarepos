@@ -60,6 +60,7 @@ interface ApiProduct {
   sellingPrice: string | number;
   quantity: number;
   reorderLevel: number;
+  imageUrl?: string | null;
   categoryId: string | null;
   category?: { id: string; name: string } | null;
   supplierId: string | null;
@@ -95,6 +96,7 @@ export default function ProductsPage() {
     name: "",
     productCode: "",
     description: "",
+    imageUrl: "",
     categoryId: "",
     supplierId: "",
     buyingPrice: "",
@@ -135,6 +137,7 @@ export default function ProductsPage() {
         name: formData.name,
         productCode: formData.productCode,
         description: formData.description,
+        imageUrl: formData.imageUrl || undefined,
         categoryId: formData.categoryId || undefined,
         supplierId: formData.supplierId || undefined,
         buyingPrice: Number(formData.buyingPrice),
@@ -154,6 +157,7 @@ export default function ProductsPage() {
         name: "",
         productCode: "",
         description: "",
+        imageUrl: "",
         categoryId: "",
         supplierId: "",
         buyingPrice: "",
@@ -270,6 +274,14 @@ export default function ProductsPage() {
                     placeholder="Product description"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Image URL</Label>
+                  <Input
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
                   />
                 </div>
                 <div className="grid gap-2">

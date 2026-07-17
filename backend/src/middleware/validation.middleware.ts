@@ -12,16 +12,21 @@ const sendValidationError = (
   });
 };
 
-export const validate = (schema: ZodTypeAny) => {
+export const validate = (schema: ZodTypeAny, source: "body" | "query" = "body") => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const result = schema.safeParse(req.body);
+    const data = source === "query" ? req.query : req.body;
+    const result = schema.safeParse(data);
 
     if (!result.success) {
       sendValidationError(res, result);
       return;
     }
 
-    req.body = result.data;
+    if (source === "query") {
+      (req as any).validatedQuery = result.data;
+    } else {
+      req.body = result.data;
+    }
     next();
   };
 };

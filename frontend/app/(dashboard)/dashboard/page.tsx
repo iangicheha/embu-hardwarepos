@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DollarSign,
   ShoppingCart,
@@ -50,19 +50,34 @@ export default function DashboardPage() {
   const [restocks, setRestocks] = useState<any[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
 
-  useEffect(() => {
-    Promise.all([
+  const refreshData = useCallback(async () => {
+    const [summaryRes, ordersRes, restocksRes, lowStockRes] = await Promise.all([
       getDashboardSummary().catch(() => null),
       getOrders(1, 5).catch(() => null),
       getRestocks(1, 5).catch(() => null),
       getLowStockProducts().catch(() => null)
-    ]).then(([summaryRes, ordersRes, restocksRes, lowStockRes]) => {
-      setSummary(summaryRes?.data ?? null);
-      setOrders(ordersRes?.data?.orders ?? []);
-      setRestocks(restocksRes?.data?.restocks ?? []);
-      setLowStockProducts(Array.isArray(lowStockRes?.data) ? lowStockRes.data : []);
-    });
+    ]);
+    setSummary(summaryRes?.data ?? null);
+    setOrders(ordersRes?.data?.orders ?? []);
+    setRestocks(restocksRes?.data?.restocks ?? []);
+    setLowStockProducts(Array.isArray(lowStockRes?.data) ? lowStockRes.data : []);
   }, []);
+
+  useEffect(() => {
+    refreshData();
+
+    // Set up auto-refresh every 30 seconds for real-time updates
+    const interval = setInterval(refreshData, 30000);
+
+    // Listen for custom event to refresh data (triggered after sales)
+    const handleRefresh = () => refreshData();
+    window.addEventListener('dashboard-refresh', handleRefresh);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('dashboard-refresh', handleRefresh);
+    };
+  }, [refreshData]);
 
   return (
     <div className="space-y-6">

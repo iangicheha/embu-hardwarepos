@@ -15,6 +15,7 @@ const baseProductObject = z.object({
   sellingPrice: z.number().positive().finite(),
   quantity: z.number().int().min(0),
   reorderLevel: z.number().int().min(0),
+  imageUrl: z.string().url().optional(),
   categoryId: z.string().uuid().optional(),
   supplierId: z.string().uuid().optional()
 });

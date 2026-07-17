@@ -138,6 +138,8 @@ model Product {
 
   reorderLevel    Int       @default(10)
 
+  imageUrl        String?
+
   categoryId      String?
   category        Category? @relation(fields: [categoryId], references: [id])
 
@@ -327,6 +329,35 @@ model Setting {
   updatedAt         DateTime  @updatedAt
 
   @@map("settings")
+}
+
+//
+// PRINTERS
+//
+
+model Printer {
+  id                String    @id @default(uuid())
+
+  name              String
+
+  printerType       String    @default("THERMAL") // THERMAL, INKJET, LASER
+
+  connectionType    String    @default("USB") // USB, NETWORK, WIFI, BLUETOOTH, WINDOWS
+
+  ipAddress         String?   // For network printers
+
+  port              String?   // For network printers
+
+  isDefault         Boolean   @default(false)
+
+  paperSize         String    @default("80MM") // 58MM, 80MM, A4
+
+  autoPrint         Boolean   @default(false)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("printers")
 }
 
 //
