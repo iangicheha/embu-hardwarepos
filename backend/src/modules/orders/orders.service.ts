@@ -52,7 +52,16 @@ class OrdersService {
   }
 
   async createOrder(payload: CreateOrderInput, userId: string) {
-    const rawItems = payload.items?.create;
+    // Handle both formats: flat array (from frontend) and nested create object (Prisma format)
+    let rawItems: any[] = [];
+    if (Array.isArray(payload.items)) {
+      // Frontend sends: items: [{ productId: "...", quantity: 2 }, ...]
+      rawItems = payload.items;
+    } else if (payload.items?.create) {
+      // Prisma nested write format: items: { create: [{ productId: "...", quantity: 2 }, ...] }
+      rawItems = payload.items.create;
+    }
+
     if (!Array.isArray(rawItems) || rawItems.length === 0) {
       throw new AppError("Order must have at least one item", 400);
     }
