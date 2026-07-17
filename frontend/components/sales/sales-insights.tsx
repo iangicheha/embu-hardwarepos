@@ -204,10 +204,10 @@ export function SalesInsights() {
             )}
 
             {highestRevenueProduct && (
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+              <div className="p-4 rounded-lg bg-primary/10">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">
                     Highest Revenue Product
                   </span>
                 </div>
