@@ -1,12 +1,26 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, User, Lock, LogIn, ShieldCheck } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Lock,
+  LogIn,
+  ShieldCheck,
+  ShoppingCart,
+  Package,
+  Users,
+  BarChart3,
+  Cloud,
+  Headphones,
+} from "lucide-react";
 
 import { loginUser } from "@/lib/api";
 
-type Role = "ADMIN" | "MANAGER" | "CASHIER";
+type Role = "ADMIN" |"CASHIER";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,182 +57,324 @@ export default function LoginPage() {
 
   const roles: { key: Role; label: string }[] = [
     { key: "ADMIN", label: "Admin" },
-    { key: "MANAGER", label: "Manager" },
     { key: "CASHIER", label: "Cashier" },
   ];
 
+  const features = [
+    {
+      icon: ShoppingCart,
+      title: "Sales Management",
+      desc: "Fast and seamless billing",
+    },
+    {
+      icon: Package,
+      title: "Inventory Control",
+      desc: "Track stock in real-time",
+    },
+    {
+      icon: Users,
+      title: "Customer Management",
+      desc: "Build strong customer relationships",
+    },
+    {
+      icon: BarChart3,
+      title: "Reports & Analytics",
+      desc: "Make data-driven decisions",
+    },
+  ];
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950">
-      {/* Diagonal red split background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(115deg, #0a0a0a 0%, #0a0a0a 55%, #b91c1c 55%, #dc2626 100%)",
-        }}
-      />
+    <div className="flex min-h-screen flex-col bg-slate-100">
+      <div className="flex flex-1 min-h-screen">
+        {/* LEFT PANEL */}
+        <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden">
+          <Image
+            src="/mitchell-luo-G5i9LQ7sPOw-unsplash.jpg"
+            alt="Hardware Store"
+            fill
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-black/75" />
 
-      {/* subtle diagonal stripes on the red side */}
-      <div
-        className="absolute inset-y-0 right-0 w-[46%] opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(115deg, #fff 0px, #fff 2px, transparent 2px, transparent 40px)",
-        }}
-      />
-
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
-        <div className="w-full max-w-md rounded-3xl bg-white p-10 shadow-2xl">
-          {/* Avatar */}
-          <div className="flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-              <User className="h-9 w-9 text-red-600" strokeWidth={1.75} />
-            </div>
-          </div>
-
-          {/* Heading */}
-          <div className="mt-5 text-center">
-            <h1 className="text-3xl font-bold text-slate-900">Welcome Back!</h1>
-            <p className="mt-1.5 text-sm text-slate-500">
-              Sign in to your account to continue
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div className="relative z-10 flex flex-col justify-between w-full p-12 text-white">
             <div>
-              <label
-                htmlFor="username"
-                className="mb-1.5 block text-sm font-semibold text-slate-700"
-              >
-                Username
-              </label>
-              <div className="relative">
-                <User className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                />
+              <Image
+                src="/logo.png"
+                alt="Tripple 5 Suppliers"
+                width={260}
+                height={160}
+                className="mb-6"
+                priority
+              />
+
+              <h1 className="text-5xl font-extrabold tracking-tight text-red-500">
+                TRIPPLE 5 SUPPLIERS
+              </h1>
+
+              <p className="mt-3 text-lg italic text-white/90">
+                Peace of Mind for Builders...
+              </p>
+
+              <div className="mt-12 max-w-xl">
+                <h2 className="text-2xl font-bold tracking-wide">
+                  HARDWARE POS SYSTEM
+                </h2>
+                <div className="mt-2 h-0.5 w-16 bg-red-600" />
+
+                <p className="mt-4 text-base text-slate-300 leading-relaxed">
+                  Manage sales, inventory, customers and grow your business
+                  with ease.
+                </p>
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block text-sm font-semibold text-slate-700"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4.5 w-4.5" />
-                  ) : (
-                    <Eye className="h-4.5 w-4.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-0.5">
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
-                />
-                Remember me
-              </label>
-              <a
-                href="/forgot-password"
-                className="text-sm font-medium text-red-600 hover:text-red-700"
-              >
-                Forgot Password?
-              </a>
-            </div>
-
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <LogIn className="h-4.5 w-4.5" />
-              {loading ? "Signing In..." : "Login"}
-            </button>
-
-            {/* Divider */}
-            <div className="relative pt-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-3 text-xs font-medium text-slate-400">
-                  OR
-                </span>
-              </div>
-            </div>
-
-            <p className="text-center text-sm text-slate-500">Login as</p>
-
-            {/* Role selector */}
-            <div className="grid grid-cols-3 gap-3">
-              {roles.map((r) => (
-                <button
-                  key={r.key}
-                  type="button"
-                  onClick={() => setRole(r.key)}
-                  className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
-                    role === r.key
-                      ? "border-red-500 bg-red-50 text-red-600"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                  }`}
-                >
-                  <User
-                    className={`h-5 w-5 ${
-                      role === r.key ? "text-red-600" : "text-slate-400"
-                    }`}
-                  />
-                  {r.label}
-                </button>
+            <div className="grid grid-cols-2 gap-6">
+              {features.map((f) => (
+                <div key={f.title} className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-600">
+                    <f.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold leading-tight">{f.title}</h3>
+                    <p className="mt-1 text-sm text-slate-400 leading-snug">
+                      {f.desc}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
+          </div>
+        </div>
 
-            <div className="pt-4 text-center">
-              <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Authorized access only
-              </p>
+        {/* RIGHT PANEL */}
+        <div className="relative flex flex-1 items-center justify-center overflow-hidden p-6 md:p-10">
+          <div
+            className="absolute inset-0 lg:hidden"
+            style={{
+              background:
+                "linear-gradient(115deg, #0a0a0a 0%, #0a0a0a 55%, #b91c1c 55%, #dc2626 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 hidden lg:block"
+            style={{
+              background:
+                "linear-gradient(115deg, #0a0a0a 0%, #0a0a0a 12%, #b91c1c 12%, #dc2626 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-y-0 right-0 w-full opacity-[0.06] hidden lg:block"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(115deg, #fff 0px, #fff 2px, transparent 2px, transparent 40px)",
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-md">
+            <div className="rounded-3xl bg-white p-8 md:p-10 shadow-2xl">
+              {/* Avatar */}
+              <div className="flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
+                  <User className="h-9 w-9 text-red-600" strokeWidth={1.75} />
+                </div>
+              </div>
+
+              {/* Heading */}
+              <div className="mt-5 text-center">
+                <h1 className="text-3xl font-bold text-slate-900">
+                  Welcome Back!
+                </h1>
+                <p className="mt-1.5 text-sm text-slate-500">
+                  Sign in to your account to continue
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="mb-1.5 block text-sm font-semibold text-slate-700"
+                  >
+                    Username
+                  </label>
+                  <div className="relative">
+                    <User className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <input
+                      id="username"
+                      type="text"
+                      placeholder="Enter your username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="mb-1.5 block text-sm font-semibold text-slate-700"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-[18px] w-[18px]" />
+                      ) : (
+                        <Eye className="h-[18px] w-[18px]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-0.5">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                    />
+                    Remember me
+                  </label>
+                  <a
+                    href="/forgot-password"
+                    className="text-sm font-medium text-red-600 hover:text-red-700"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
+
+                {error && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <LogIn className="h-[18px] w-[18px]" />
+                  {loading ? "Signing In..." : "Login"}
+                </button>
+
+                {/* Divider */}
+                <div className="relative pt-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-3 text-xs font-medium text-slate-400">
+                      OR
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-center text-sm text-slate-500">Login as</p>
+
+                {/* Role selector */}
+                <div className="grid grid-cols-3 gap-3">
+                  {roles.map((r) => (
+                    <button
+                      key={r.key}
+                      type="button"
+                      onClick={() => setRole(r.key)}
+                      className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
+                        role === r.key
+                          ? "border-red-500 bg-red-50 text-red-600"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
+                    >
+                      <User
+                        className={`h-5 w-5 ${
+                          role === r.key ? "text-red-600" : "text-slate-400"
+                        }`}
+                      />
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-4 text-center">
+                  <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Authorized access only
+                  </p>
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER BAR */}
+      <div className="bg-black">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-8">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-red-500" />
+              <div>
+                <p className="text-sm font-medium leading-tight">
+                  Secure &amp; Reliable
+                </p>
+                <p className="text-xs text-slate-400 leading-tight">
+                  Your data is safe with us
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Cloud className="h-4 w-4 text-red-500" />
+              <div>
+                <p className="text-sm font-medium leading-tight">
+                  Cloud Backup
+                </p>
+                <p className="text-xs text-slate-400 leading-tight">
+                  Automatic daily backup
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Headphones className="h-4 w-4 text-red-500" />
+              <div>
+                <p className="text-sm font-medium leading-tight">
+                  24/7 Support
+                </p>
+                <p className="text-xs text-slate-400 leading-tight">
+                  We are here to help
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-left sm:text-right">
+            <p className="text-sm font-medium">Tripple 5 Suppliers ERP v1.0</p>
+            <p className="text-xs text-slate-400">© 2026 All Rights Reserved</p>
+          </div>
         </div>
       </div>
     </div>
