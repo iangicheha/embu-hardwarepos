@@ -1,117 +1,53 @@
-Create a premium, professional, modern Hardware Store ERP/POS Login Page for "Tripple 5 Suppliers".
+My app's brand color is red, defined as the `--primary` CSS variable in 
+frontend/app/globals.css (currently `--primary: 0 72% 51%` — a red, labeled 
+"TRIPPLE 5 RED THEME"). The login page correctly uses this red (via 
+bg-red-600, text-red-600, border-red-500, etc. and/or bg-primary), but the 
+rest of the app (dashboard, sidebar, and other pages) has hardcoded blue 
+classes instead (e.g. bg-blue-600, text-blue-600, border-blue-500, 
+ring-blue-*, blue-50/100 backgrounds used as accents).
 
-IMPORTANT:
-Use the company logo located at:
-frontend/public/logo.png
+Task: Do a full sweep of the frontend codebase (app/, components/, and any 
+other directories with .tsx/.jsx files) and replace every hardcoded blue 
+accent class that represents brand/interactive color with the theme's 
+primary token instead, so the whole app is visually consistent with the 
+red login page. Specifically:
 
-The logo must be prominently displayed on the left side of the screen and should be treated as the primary brand identity.
+1. Search for all Tailwind classes matching patterns like: bg-blue-*, 
+   text-blue-*, border-blue-*, ring-blue-*, from-blue-*, to-blue-*, 
+   hover:bg-blue-*, hover:text-blue-*, focus:ring-blue-*, dark:bg-blue-*, 
+   dark:text-blue-*, and any inline hex/rgb colors that resemble blue used 
+   as an accent (not in illustrative icons or unrelated content like status 
+   badges for "info" states — use judgment: sidebar active states, primary 
+   buttons, links, focus rings, logo badges, avatar rings, and selected/ 
+   active UI states should become red; leave genuinely semantic colors 
+   alone, e.g. green for success, amber for warning, red for destructive/ 
+   error should stay as-is and not be touched just because red already 
+   matches).
 
-LAYOUT:
-- Full-screen responsive login page
-- Modern 16:9 desktop-first design
-- Split-screen layout
+2. Replace matched brand-accent classes with the equivalent using the 
+   existing shadcn/tailwind theme tokens already defined in globals.css 
+   (bg-primary, text-primary, border-primary, ring-primary, 
+   text-primary-foreground, bg-primary/10, etc.) rather than hardcoding 
+   bg-red-600 directly, so future theme changes only require editing 
+   globals.css. Use the appropriate opacity/shade variants (e.g. 
+   bg-primary/10 for light tinted backgrounds that were previously 
+   bg-blue-50, bg-primary for solid buttons/active states that were 
+   bg-blue-600).
 
-LEFT SECTION (45-50% width):
-- Dark hardware store background image
-- Show shelves stocked with hardware products
-- Display tools such as wrenches, hammers, screwdrivers, plumbing fittings, paint cans, padlocks, electrical accessories, and building materials
-- Apply a dark overlay (rgba(0,0,0,0.65)) for readability
-- Center the company logo
-- Company name:
-  "TRIPPLE 5 SUPPLIERS"
-- Tagline:
-  "Peace of Mind for Builders..."
-- Heading:
-  "HARDWARE POS SYSTEM"
-- Description:
-  "Manage sales, inventory, customers and grow your business with ease."
+3. Check the dashboard sidebar/nav specifically — the active nav item 
+   background, the logo icon badge (currently a blue wrench icon badge), 
+   notification bell badge, and the user avatar background/ring should all 
+   move from blue to the primary red token.
 
-Display four feature cards with icons:
+4. After making changes, grep the codebase again for any remaining 
+   blue-* classes used as brand/accent color to confirm nothing was missed, 
+   and list any ambiguous cases you left alone with a one-line reason (e.g. 
+   "kept blue-500 in InfoBanner.tsx — semantic 'info' color, not a brand 
+   accent").
 
-1. Sales Management
-   Fast and seamless billing
+5. Do not touch: chart/graph color palettes if they use blue for 
+   multi-series differentiation, favicon/logo image assets, or any 
+   third-party component defaults that aren't part of our design system.
 
-2. Inventory Control
-   Track stock in real-time
-
-3. Customer Management
-   Build strong customer relationships
-
-4. Reports & Analytics
-   Make data-driven decisions
-
-BOTTOM BAR:
-- Secure & Reliable
-- Cloud Backup
-- 24/7 Support
-
-RIGHT SECTION (50-55% width):
-- White glassmorphism login card
-- Rounded corners (24px)
-- Soft shadow
-- Modern enterprise ERP appearance
-
-CARD CONTENT:
-- Welcome icon
-- Heading:
-  "Welcome Back!"
-- Subtitle:
-  "Sign in to your account to continue"
-
-FORM:
-- Username field with icon
-- Password field with show/hide password toggle
-- Remember Me checkbox
-- Forgot Password link
-- Large red Login button
-
-BUTTON STYLE:
-- Gradient red button
-- Hover animations
-- Professional ERP styling
-
-ROLES SECTION:
-Display role selection cards:
-
-- Admin
-- Manager
-- Cashier
-
-Each role card should have:
-- Icon
-- Hover effect
-- Active selection state
-
-BOTTOM OF CARD:
-- Security shield icon
-- Text:
-  "Authorized access only"
-
-FOOTER:
-Tripple 5 Suppliers ERP v1.0
-© 2026 All Rights Reserved
-
-COLOR PALETTE:
-Primary Red: #DC2626
-Dark: #111827
-Background: #F8FAFC
-White: #FFFFFF
-Text Dark: #1F2937
-
-DESIGN REQUIREMENTS:
-- Professional ERP software appearance
-- Similar quality to enterprise software like Odoo, SAP, Oracle NetSuite, and Zoho
-- Clean typography
-- High-end dashboard aesthetic
-- Fully responsive
-- Mobile friendly
-- Accessible
-- Use Tailwind CSS
-- Use Next.js 15 App Router
-- Use TypeScript
-- Use ShadCN UI components
-- Use Lucide React icons
-- Add smooth transitions and hover effects
-- Production-ready code
-- No placeholder content
-- Use the logo from frontend/public/logo.png
+Show me a summary of every file changed and a brief diff-style list of what 
+was swapped in each, so I can review before testing.

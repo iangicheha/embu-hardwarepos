@@ -699,14 +699,14 @@ type ProfitReport = {
   orderCount: number;
 };
 
-type TopProduct = {
+export type TopProduct = {
   productId: string;
   name: string;
   quantity: number;
   revenue: number;
 };
 
-type PaymentBreakdown = {
+export type PaymentBreakdown = {
   paymentMethod: string;
   totalAmount: number;
   orderCount: number;
@@ -755,7 +755,7 @@ type Supplier = {
   address?: string | null;
 };
 
-type Order = {
+export type Order = {
   id: string;
   orderNumber: string;
   receiptNumber: string;
