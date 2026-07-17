@@ -70,12 +70,12 @@ export default function PrintersPage() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     name: string;
-    printerType: "THERMAL" | "STANDARD" | string;
-    connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS" | string;
+    printerType: "THERMAL" | "INKJET" | "LASER";
+    connectionType: "USB" | "NETWORK" | "WIFI" | "BLUETOOTH" | "WINDOWS";
     ipAddress: string;
     port: string;
     isDefault: boolean;
-    paperSize: "58MM" | "80MM" | "A4" | string;
+    paperSize: "58MM" | "80MM" | "A4";
     autoPrint: boolean;
   }>({
     name: "",
