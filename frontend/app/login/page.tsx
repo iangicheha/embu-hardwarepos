@@ -20,7 +20,7 @@ import {
 
 import { loginUser } from "@/lib/api";
 
-type Role = "ADMIN" |"CASHIER";
+type Role = "ADMIN" | "MANAGER" | "CASHIER";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,6 +57,7 @@ export default function LoginPage() {
 
   const roles: { key: Role; label: string }[] = [
     { key: "ADMIN", label: "Admin" },
+    { key: "MANAGER", label: "Manager" },
     { key: "CASHIER", label: "Cashier" },
   ];
 
@@ -84,8 +85,8 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100">
-      <div className="flex flex-1 min-h-screen">
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-100">
+      <div className="flex flex-1 min-h-0">
         {/* LEFT PANEL */}
         <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden">
           <Image
@@ -97,47 +98,47 @@ export default function LoginPage() {
           />
           <div className="absolute inset-0 bg-black/75" />
 
-          <div className="relative z-10 flex flex-col justify-between w-full p-12 text-white">
+          <div className="relative z-10 flex flex-col justify-between w-full p-8 text-white">
             <div>
               <Image
                 src="/logo.png"
                 alt="Tripple 5 Suppliers"
-                width={260}
-                height={160}
-                className="mb-6"
+                width={200}
+                height={120}
+                className="mb-4"
                 priority
               />
 
-              <h1 className="text-5xl font-extrabold tracking-tight text-red-500">
+              <h1 className="text-4xl font-extrabold tracking-tight text-red-500">
                 TRIPPLE 5 SUPPLIERS
               </h1>
 
-              <p className="mt-3 text-lg italic text-white/90">
+              <p className="mt-2 text-base italic text-white/90">
                 Peace of Mind for Builders...
               </p>
 
-              <div className="mt-12 max-w-xl">
-                <h2 className="text-2xl font-bold tracking-wide">
+              <div className="mt-8 max-w-xl">
+                <h2 className="text-xl font-bold tracking-wide">
                   HARDWARE POS SYSTEM
                 </h2>
                 <div className="mt-2 h-0.5 w-16 bg-red-600" />
 
-                <p className="mt-4 text-base text-slate-300 leading-relaxed">
+                <p className="mt-3 text-sm text-slate-300 leading-relaxed">
                   Manage sales, inventory, customers and grow your business
                   with ease.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               {features.map((f) => (
                 <div key={f.title} className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-600">
-                    <f.icon className="h-5 w-5 text-white" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-600">
+                    <f.icon className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold leading-tight">{f.title}</h3>
-                    <p className="mt-1 text-sm text-slate-400 leading-snug">
+                    <h3 className="text-sm font-semibold leading-tight">{f.title}</h3>
+                    <p className="mt-0.5 text-xs text-slate-400 leading-snug">
                       {f.desc}
                     </p>
                   </div>
@@ -148,7 +149,7 @@ export default function LoginPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="relative flex flex-1 items-center justify-center overflow-hidden p-6 md:p-10">
+        <div className="relative flex flex-1 items-center justify-center overflow-hidden p-4">
           <div
             className="absolute inset-0 lg:hidden"
             style={{
@@ -172,30 +173,30 @@ export default function LoginPage() {
           />
 
           <div className="relative z-10 w-full max-w-md">
-            <div className="rounded-3xl bg-white p-8 md:p-10 shadow-2xl">
+            <div className="rounded-3xl bg-white p-6 md:p-7 shadow-2xl">
               {/* Avatar */}
               <div className="flex justify-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-                  <User className="h-9 w-9 text-red-600" strokeWidth={1.75} />
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+                  <User className="h-6 w-6 text-red-600" strokeWidth={1.75} />
                 </div>
               </div>
 
               {/* Heading */}
-              <div className="mt-5 text-center">
-                <h1 className="text-3xl font-bold text-slate-900">
+              <div className="mt-3 text-center">
+                <h1 className="text-2xl font-bold text-slate-900">
                   Welcome Back!
                 </h1>
-                <p className="mt-1.5 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500">
                   Sign in to your account to continue
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
                 <div>
                   <label
                     htmlFor="username"
-                    className="mb-1.5 block text-sm font-semibold text-slate-700"
+                    className="mb-1 block text-sm font-semibold text-slate-700"
                   >
                     Username
                   </label>
@@ -210,7 +211,7 @@ export default function LoginPage() {
                       required
                       autoCapitalize="none"
                       autoCorrect="off"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     />
                   </div>
                 </div>
@@ -218,7 +219,7 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="password"
-                    className="mb-1.5 block text-sm font-semibold text-slate-700"
+                    className="mb-1 block text-sm font-semibold text-slate-700"
                   >
                     Password
                   </label>
@@ -231,7 +232,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     />
                     <button
                       type="button"
@@ -275,14 +276,14 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <LogIn className="h-[18px] w-[18px]" />
                   {loading ? "Signing In..." : "Login"}
                 </button>
 
                 {/* Divider */}
-                <div className="relative pt-2">
+                <div className="relative pt-1">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200" />
                   </div>
@@ -302,14 +303,14 @@ export default function LoginPage() {
                       key={r.key}
                       type="button"
                       onClick={() => setRole(r.key)}
-                      className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-sm font-medium transition ${
                         role === r.key
                           ? "border-red-500 bg-red-50 text-red-600"
                           : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                       }`}
                     >
                       <User
-                        className={`h-5 w-5 ${
+                        className={`h-4.5 w-4.5 ${
                           role === r.key ? "text-red-600" : "text-slate-400"
                         }`}
                       />
@@ -318,7 +319,7 @@ export default function LoginPage() {
                   ))}
                 </div>
 
-                <div className="pt-4 text-center">
+                <div className="pt-2 text-center">
                   <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     Authorized access only
@@ -331,8 +332,8 @@ export default function LoginPage() {
       </div>
 
       {/* FOOTER BAR */}
-      <div className="bg-black">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-black shrink-0">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-3 text-white sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-8">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-red-500" />
