@@ -52,15 +52,24 @@ class OrdersService {
   }
 
   async createOrder(payload: CreateOrderInput, userId: string) {
-    // Handle both formats: flat array (from frontend) and nested create object (Prisma format)
+    // Handle both formats:
+    // 1. Frontend format: { items: [{ productId: "...", quantity: 2 }, ...] } (direct array)
+    // 2. Prisma format: { items: { create: [{ productId: "...", quantity: 2 }, ...] } } (nested object)
     let rawItems: any[] = [];
+
     if (Array.isArray(payload.items)) {
-      // Frontend sends: items: [{ productId: "...", quantity: 2 }, ...]
+      // Frontend sends items as a direct array
       rawItems = payload.items;
-    } else if (payload.items?.create) {
-      // Prisma nested write format: items: { create: [{ productId: "...", quantity: 2 }, ...] }
-      rawItems = payload.items.create;
+    } else if (payload.items && typeof payload.items === 'object' && 'create' in payload.items) {
+      // Prisma format: items is an object with a create property
+      // We need to check that create is actually an array
+      const createProp = (payload.items as any).create;
+      if (Array.isArray(createProp)) {
+        rawItems = createProp;
+      }
+      // If create is not an array, rawItems remains [] and will trigger the validation error below
     }
+    // If neither condition is met, rawItems remains [] and will trigger the validation error
 
     if (!Array.isArray(rawItems) || rawItems.length === 0) {
       throw new AppError("Order must have at least one item", 400);
