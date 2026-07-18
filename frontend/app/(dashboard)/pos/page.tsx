@@ -63,6 +63,23 @@ const PLACEHOLDER_IMAGE =
       '<rect width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14" fill="#9ca3af">No Image</text></svg>'
   );
 
+/**
+ * Normalize an imageUrl from the API into something the browser can load.
+ * - null/empty -> placeholder
+ * - full URL (http/https) -> used as-is
+ * - site-relative path that already starts with "/" -> used as-is
+ * - bare filename like "hammer.png" -> prefixed with "/products/"
+ *   (defensive: some older DB rows are missing the prefix)
+ */
+function normalizeImageUrl(raw: string | null | undefined): string {
+  if (!raw) return PLACEHOLDER_IMAGE;
+  const url = raw.trim();
+  if (!url) return PLACEHOLDER_IMAGE;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/")) return url;
+  return `/products/${url}`;
+}
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -335,7 +352,7 @@ export default function POSPage() {
                     <div className="relative h-32 w-full bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={product.imageUrl || PLACEHOLDER_IMAGE}
+                        src={normalizeImageUrl(product.imageUrl)}
                         alt={product.name}
                         className="h-full w-full object-cover"
                       />

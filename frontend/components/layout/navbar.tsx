@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, LogOut, Menu, Search, Settings, User } from "lucide-react";
-import { currentUser, products, orders, suppliers } from "@/lib/data";
+import { products, orders, suppliers } from "@/lib/data";
 import { getNotifications } from "@/lib/api";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { ProfileDialog } from "@/components/profile/profile-dialog";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -43,9 +45,11 @@ function getPageTitle(pathname: string) {
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, initials } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Fetch notifications on mount and set up polling for real-time updates
   useEffect(() => {
@@ -193,20 +197,22 @@ export function Navbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 gap-2 px-2">
               <Avatar className="h-7 w-7">
-                <AvatarFallback className="text-xs">{currentUser.avatar}</AvatarFallback>
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm font-medium md:inline">{currentUser.name}</span>
+              <span className="hidden text-sm font-medium md:inline">
+                {user?.fullName ?? "Account"}
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{currentUser.name}</p>
-                <p className="text-xs text-muted-foreground">{currentUser.email}</p>
+                <p className="text-sm font-medium">{user?.fullName ?? "Account"}</p>
+                <p className="text-xs text-muted-foreground">{user?.email ?? ""}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setProfileOpen(true)}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
@@ -224,6 +230,8 @@ export function Navbar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </header>
   );
 }

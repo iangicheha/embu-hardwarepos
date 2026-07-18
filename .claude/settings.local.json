@@ -34,7 +34,9 @@
       "Bash(cmd /c \"taskkill /PID 19972 /F\")",
       "Bash(exit *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(cd *)",
+      "Bash(NEXT_PUBLIC_API_URL=\"https://hardwareembu.onrender.com/api\" SEED_ADMIN_EMAIL=\"admin\" SEED_ADMIN_PASSWORD=\"Admin@123\" npx tsx seed-product-images.ts)"
     ]
   }
 }

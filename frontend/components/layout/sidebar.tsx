@@ -20,8 +20,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/lib/data";
 import { getSettings } from "@/lib/api";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const { user, initials } = useCurrentUser();
   const [businessName, setBusinessName] = useState("Hardware Store");
 
   useEffect(() => {
@@ -108,13 +109,17 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
       <div className="border-t border-sidebar-border p-4">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <Avatar className="h-9 w-9">
-            <AvatarFallback>{currentUser.avatar}</AvatarFallback>
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">{currentUser.name}</p>
+              <p className="truncate text-sm font-medium">
+                {user?.fullName ?? "Account"}
+              </p>
               <Badge variant="secondary" className="mt-0.5 text-[10px]">
-                {currentUser.role}
+                {user?.role
+                  ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                  : ""}
               </Badge>
             </div>
           )}
