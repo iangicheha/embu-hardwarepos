@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getSettings } from "@/lib/api";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { CASHIER_ALLOWED_ROUTES } from "@/lib/rbac";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,17 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
       });
   }, []);
 
+  // Cashier (server role "worker") only sees Orders, Products, and Restocks.
+  // Admins see everything. Unknown role -> show everything (don't lock anyone
+  // out before the user blob has hydrated from storage).
+  const visibleMenuItems = useMemo(() => {
+    if (!user) return menuItems;
+    if (user.role === "worker") {
+      return menuItems.filter((item) => CASHIER_ALLOWED_ROUTES.has(item.href));
+    }
+    return menuItems;
+  }, [user]);
+
   return (
     <aside
       className={cn(
@@ -95,7 +107,7 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 scrollbar-thin">
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <SidebarLink
             key={item.href}
             item={item}
@@ -118,7 +130,9 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
               </p>
               <Badge variant="secondary" className="mt-0.5 text-[10px]">
                 {user?.role
-                  ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                  ? user.role === "worker"
+                    ? "Cashier"
+                    : user.role.charAt(0).toUpperCase() + user.role.slice(1)
                   : ""}
               </Badge>
             </div>

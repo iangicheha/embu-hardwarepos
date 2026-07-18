@@ -20,7 +20,9 @@ import {
 
 import { loginUser } from "@/lib/api";
 
-type Role = "ADMIN" | "MANAGER" | "CASHIER";
+// Display labels only. The real role comes from the server's login response
+// (backend enum: "admin" | "worker"). The picker below is purely cosmetic.
+type Role = "ADMIN" | "CASHIER";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,7 +59,6 @@ export default function LoginPage() {
 
   const roles: { key: Role; label: string }[] = [
     { key: "ADMIN", label: "Admin" },
-    { key: "MANAGER", label: "Manager" },
     { key: "CASHIER", label: "Cashier" },
   ];
 
@@ -297,7 +298,7 @@ export default function LoginPage() {
                 <p className="text-center text-xs text-slate-500">Login as</p>
 
                 {/* Role selector */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {roles.map((r) => (
                     <button
                       key={r.key}

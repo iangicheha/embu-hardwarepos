@@ -152,6 +152,10 @@ export function Navbar() {
     router.replace("/login");
   };
 
+  // Cashier (server role "worker") doesn't have access to notifications or
+  // settings, so hide the related UI elements.
+  const isCashier = user?.role === "worker";
+
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-6">
       <Sheet>
@@ -180,16 +184,18 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-1">
-        <Link href="/notifications">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </Button>
-        </Link>
+        {!isCashier && (
+          <Link href="/notifications">
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+        )}
 
         <ThemeToggle />
 
@@ -216,12 +222,14 @@ export function Navbar() {
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
+            {!isCashier && (
+              <DropdownMenuItem asChild>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-danger" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
