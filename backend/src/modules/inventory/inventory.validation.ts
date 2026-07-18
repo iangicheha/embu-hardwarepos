@@ -15,7 +15,17 @@ const baseProductObject = z.object({
   sellingPrice: z.number().positive().finite(),
   quantity: z.number().int().min(0),
   reorderLevel: z.number().int().min(0),
-  imageUrl: z.string().url().optional(),
+  // Accept either a full URL (https://...) or a site-relative path
+  // (e.g. "/products/hammer.png") so the frontend can reference locally
+  // hosted images in the public/ folder without needing a CDN URL.
+  imageUrl: z
+    .string()
+    .trim()
+    .refine(
+      (v) => v === "" || z.string().url().safeParse(v).success || v.startsWith("/"),
+      { message: "Invalid URL" }
+    )
+    .optional(),
   categoryId: z.string().uuid().optional(),
   supplierId: z.string().uuid().optional()
 });
