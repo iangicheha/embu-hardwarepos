@@ -11,6 +11,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Tripple 5 Suppliers ERP",
   description: "Enterprise-grade hardware store management system",
+  // Reuse the existing logo.png for the browser tab icon. Without this the
+  // browser auto-requests /favicon.ico, which 404s because the project only
+  // ships public/logo.png.
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
