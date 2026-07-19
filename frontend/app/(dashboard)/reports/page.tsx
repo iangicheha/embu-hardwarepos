@@ -10,6 +10,8 @@ import {
   Search,
   FileSpreadsheet,
   BarChart3,
+  Receipt,
+  PackagePlus,
 } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
 import {
@@ -20,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -36,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, exportSalesCsv } from "@/lib/api";
+import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, getRestocks, exportSalesCsv } from "@/lib/api";
 import { formatCurrency, toNumber } from "@/lib/utils";
 
 export default function ReportsPage() {
@@ -46,6 +49,7 @@ export default function ReportsPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [periodOrders, setPeriodOrders] = useState<any[]>([]);
+  const [periodRestocks, setPeriodRestocks] = useState<any[]>([]);
 
   // Filters
   const [dateFrom, setDateFrom] = useState("");
@@ -75,17 +79,32 @@ export default function ReportsPage() {
       if (!dateFrom || !dateTo) return;
       try {
         setLoading(true);
-        const [summaryRes, suppliersRes, productsRes, salesRes] = await Promise.all([
+        const [summaryRes, suppliersRes, productsRes, salesRes, restocksRes] = await Promise.all([
           getDashboardSummary(),
           getSuppliers(1, 100),
           getProducts(1, 100),
           getSalesReport(dateFrom, dateTo).catch(() => ({ data: [] })),
+          getRestocks(1, 100).catch(() => ({ data: { restocks: [] } })),
         ]);
 
         setSummary(summaryRes.data);
         setSuppliers(suppliersRes.data?.suppliers ?? []);
         setProducts(productsRes.data?.products ?? []);
         setPeriodOrders(Array.isArray(salesRes?.data) ? salesRes.data : []);
+
+        // getRestocks isn't date-filterable server-side — filter client-side
+        // to the same window as the orders so the two tables line up.
+        const allRestocks = restocksRes.data?.restocks ?? [];
+        const from = new Date(dateFrom);
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        setPeriodRestocks(
+          allRestocks.filter((r: any) => {
+            if (!r.createdAt) return false;
+            const d = new Date(r.createdAt);
+            return d >= from && d <= to;
+          })
+        );
       } catch (err) {
         setError("Failed to load reports");
         console.error(err);
@@ -160,17 +179,48 @@ export default function ReportsPage() {
 
   async function handleExportCsv() {
     try {
+      setError(null);
+      // Try the backend export first — it may include richer data.
       const csv = await exportSalesCsv(dateFrom, dateTo);
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `sales-report-${dateFrom}-${dateTo}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      downloadCsv(csv, `sales-report-${dateFrom}-${dateTo}.csv`);
     } catch (err: any) {
-      setError(err.message || "Failed to export CSV");
+      // Backend export failed or isn't wired up — fall back to building the
+      // CSV client-side from what's already loaded, so Export CSV never
+      // just silently does nothing.
+      console.warn("Backend CSV export failed, using client-side fallback:", err);
+      const csv = buildOrdersCsv(filteredOrders);
+      downloadCsv(csv, `sales-report-${dateFrom}-${dateTo}.csv`);
     }
+  }
+
+  function downloadCsv(csv: string, filename: string) {
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  function buildOrdersCsv(orders: any[]): string {
+    const header = ["Order Number", "Date", "Payment Method", "Items", "Total Quantity", "Total Amount"];
+    const rows = orders.map((o) => {
+      const items = o.items ?? [];
+      const itemsSummary = items
+        .map((it: any) => `${it.product?.name ?? "Unknown"} x${toNumber(it.quantity)}`)
+        .join("; ");
+      const totalQty = items.reduce((s: number, it: any) => s + toNumber(it.quantity), 0);
+      return [
+        o.orderNumber ?? "",
+        o.createdAt ? new Date(o.createdAt).toLocaleString() : "",
+        o.paymentMethod ?? "",
+        `"${itemsSummary.replace(/"/g, '""')}"`,
+        String(totalQty),
+        String(toNumber(o.totalAmount)),
+      ];
+    });
+    return [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
   }
 
   if (loading) {
@@ -358,6 +408,123 @@ export default function ReportsPage() {
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ORDERS — every sale in the filtered period. Red accent = money out
+          the door (a sale). */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Receipt className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base">Orders</CardTitle>
+            <Badge variant="secondary" className="ml-auto">
+              {filteredOrders.length} order{filteredOrders.length === 1 ? "" : "s"}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">Sales made in the filtered period.</p>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order No.</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead className="text-right">Qty</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
+                    No orders match these filters.
+                  </TableCell>
+                </TableRow>
+              )}
+              {filteredOrders.map((order) => {
+                const totalQty = (order.items ?? []).reduce(
+                  (s: number, it: any) => s + toNumber(it.quantity),
+                  0
+                );
+                return (
+                  <TableRow
+                    key={order.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      setOrderNumberInput(order.orderNumber ?? "");
+                      setLookedUpOrder(order);
+                      setLookupError(null);
+                    }}
+                  >
+                    <TableCell className="font-medium text-sm">{order.orderNumber}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">{order.paymentMethod ?? "—"}</TableCell>
+                    <TableCell className="text-right text-sm">{totalQty}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(order.totalAmount)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* RESTOCKS — stock coming IN from suppliers. Deliberately different
+          accent color + icon so it's never confused with the Orders table
+          above (opposite direction of goods/money). */}
+      <Card className="border-l-4 border-l-success">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <PackagePlus className="h-5 w-5 text-success" />
+            <CardTitle className="text-base">Restocks</CardTitle>
+            <Badge variant="secondary" className="ml-auto">
+              {periodRestocks.length} restock{periodRestocks.length === 1 ? "" : "s"}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">Stock received from suppliers in the filtered period.</p>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Supplier</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Qty Added</TableHead>
+                <TableHead className="text-right">Cost</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {periodRestocks.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
+                    No restocks in this period.
+                  </TableCell>
+                </TableRow>
+              )}
+              {periodRestocks.map((restock) => (
+                <TableRow key={restock.id}>
+                  <TableCell className="font-medium text-sm">{restock.product?.name ?? "Product"}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {restock.supplier?.supplierName ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {restock.createdAt ? new Date(restock.createdAt).toLocaleDateString() : "—"}
+                  </TableCell>
+                  <TableCell className="text-right text-sm text-success">
+                    +{restock.quantityAdded}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(restock.cost)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
