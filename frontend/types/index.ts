@@ -5,7 +5,25 @@ export type Category =
   | "Electrical"
   | "Plumbing"
   | "Tools"
-  | "Others";
+  | "Others"
+  | "Electrical Items"
+  | "Garden Tools"
+  | "Painting Tools & Materials"
+  | "Bathroom & Toiletry"
+  | "General Hardware"
+  | "Hand Tools & Measuring"
+  | "Window & Lock Fittings"
+  | "Screws & Fasteners"
+  | "Ropes"
+  | "Plumbing & Piping"
+  | "Masonry & Hand Tools"
+  | "Fasteners & Fixings"
+  | "Adhesives & Sealants"
+  | "Household Fittings"
+  | "Building Materials & Chemicals"
+  | "Brackets & Hinges"
+  | "Motorcycle & Bicycle Parts"
+  | "Safety Equipment";
 
 export type ProductStatus = "In Stock" | "Low Stock" | "Out of Stock";
 

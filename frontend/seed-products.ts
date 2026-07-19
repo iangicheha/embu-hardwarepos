@@ -1,14 +1,19 @@
 /**
  * seed-products.ts
  *
- * One-time script to import products from an Excel workbook (like the one
- * Claude generated earlier) into the database via your existing
- * POST /inventory API — matching each sheet to its category by name.
+ * One-time script to import products from an Excel workbook into the
+ * database via your existing POST /inventory API — matching each sheet
+ * to its category by name.
+ *
+ * CHANGE FROM ORIGINAL: sheets whose category is missing from the DB are
+ * now collected and printed as a loud warning at the end, instead of a
+ * single easy-to-miss console.log line during the run. This is what
+ * silently dropped the entire "Plumbing & Piping" sheet last time.
  *
  * Usage:
  *   1. npm install -D tsx xlsx
  *   2. Put the workbook file next to this script, or set XLSX_PATH.
- *   3. Set DATABASE-facing API env vars (same pattern as seed-categories.ts):
+ *   3. Set env vars (PowerShell shown; use export on mac/linux):
  *        $env:NEXT_PUBLIC_API_URL="https://hardwareembu.onrender.com/api"
  *        $env:SEED_ADMIN_EMAIL="admin"
  *        $env:SEED_ADMIN_PASSWORD="Admin@123"
@@ -24,7 +29,6 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "";
 const XLSX_PATH = process.env.XLSX_PATH ?? path.join(__dirname, "electrical_items.xlsx");
 
 // Maps a sheet name in the workbook to the exact category name in your DB.
-// Add to this as you add more sheets/categories later.
 const SHEET_TO_CATEGORY: Record<string, string> = {
   "Electrical Items": "Electrical",
   "Garden Tools": "Garden Tools",
@@ -48,9 +52,8 @@ const SHEET_TO_CATEGORY: Record<string, string> = {
 
 const DEFAULT_REORDER_LEVEL = 5;
 // Buying price isn't in the sheet, so it's estimated from selling price using
-// a 25% margin on selling price (buyingPrice = sellingPrice * (1 - 0.25)).
-// This is a placeholder — go back and correct it per product once you know
-// your real supplier cost.
+// a 25% margin (buyingPrice = sellingPrice * (1 - 0.25)). Placeholder — go
+// back and correct it per product once you know your real supplier cost.
 const ESTIMATED_MARGIN = 0.25;
 
 async function login(): Promise<string> {
@@ -96,14 +99,16 @@ async function getExistingProductNames(token: string): Promise<Set<string>> {
 }
 
 function categoryPrefix(categoryName: string): string {
-  return categoryName
-    .replace(/[^A-Za-z ]/g, "")
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 4) || "GEN";
+  return (
+    categoryName
+      .replace(/[^A-Za-z ]/g, "")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 4) || "GEN"
+  );
 }
 
 type Row = { name: string; quantity: number; sellingPrice: number };
@@ -160,6 +165,9 @@ async function main() {
   const categoryMap = await getCategoryIdMap(token);
   const existingNames = await getExistingProductNames(token);
 
+  console.log(`\nCategories currently in DB: ${categoryMap.size}`);
+  console.log(`Products currently in DB: ${existingNames.size}\n`);
+
   const workbook = XLSX.readFile(XLSX_PATH);
 
   const counters: Record<string, number> = {};
@@ -167,16 +175,23 @@ async function main() {
   let skippedExisting = 0;
   let skippedNoCategory = 0;
   let skippedNoPrice = 0;
+  const failedProducts: string[] = [];
+
+  // Track which sheets get skipped and why, so it's impossible to miss.
+  const skippedSheets: { sheet: string; reason: string }[] = [];
 
   for (const sheetName of workbook.SheetNames) {
     const categoryName = SHEET_TO_CATEGORY[sheetName];
     if (!categoryName) {
-      console.log(`No category mapping for sheet "${sheetName}" — skipping sheet.`);
+      skippedSheets.push({ sheet: sheetName, reason: "no entry in SHEET_TO_CATEGORY map" });
       continue;
     }
     const categoryId = categoryMap.get(categoryName);
     if (!categoryId) {
-      console.log(`Category "${categoryName}" not found in DB — skipping sheet "${sheetName}". Run seed-categories.ts first.`);
+      skippedSheets.push({
+        sheet: sheetName,
+        reason: `category "${categoryName}" not found in DB — run seed-categories.ts first, or check spelling matches exactly`,
+      });
       continue;
     }
 
@@ -184,14 +199,16 @@ async function main() {
     counters[prefix] = counters[prefix] ?? 0;
 
     const rows = readSheetRows(workbook.Sheets[sheetName]);
+    console.log(`\n--- ${sheetName} (${rows.length} rows) ---`);
+
     for (const row of rows) {
       if (existingNames.has(row.name)) {
-        console.log(`Skipping "${row.name}" — product with this name already exists`);
+        console.log(`  Skip (exists): "${row.name}"`);
         skippedExisting++;
         continue;
       }
       if (!row.sellingPrice) {
-        console.log(`Skipping "${row.name}" — no price given in the sheet, add it manually`);
+        console.log(`  Skip (no price): "${row.name}" — fix in the Excel and re-run`);
         skippedNoPrice++;
         continue;
       }
@@ -210,21 +227,43 @@ async function main() {
           reorderLevel: DEFAULT_REORDER_LEVEL,
           categoryId,
         });
-        console.log(`Created "${row.name}" (${productCode}) in "${categoryName}"`);
+        console.log(`  Created: "${row.name}" (${productCode})`);
         existingNames.add(row.name);
         created++;
       } catch (err) {
-        console.error(err instanceof Error ? err.message : err);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`  FAILED: "${row.name}" — ${msg}`);
+        failedProducts.push(row.name);
       }
     }
   }
 
-  console.log(
-    `\nDone. Created: ${created}, skipped (already existed): ${skippedExisting}, skipped (no price): ${skippedNoPrice}, skipped (no category): ${skippedNoCategory}`
-  );
-  console.log(
-    `Note: buyingPrice was ESTIMATED using a 25% margin on selling price (sheet only had selling prices) — go back and correct it per product once you know your real supplier cost.`
-  );
+  console.log(`\n${"=".repeat(60)}`);
+  console.log("SUMMARY");
+  console.log("=".repeat(60));
+  console.log(`Created:                 ${created}`);
+  console.log(`Skipped (already exist): ${skippedExisting}`);
+  console.log(`Skipped (no price):      ${skippedNoPrice}`);
+  console.log(`Failed (API error):      ${failedProducts.length}`);
+
+  if (failedProducts.length > 0) {
+    console.log(`\nFailed products (check logs above for reason):`);
+    for (const name of failedProducts) console.log(`  - ${name}`);
+  }
+
+  if (skippedSheets.length > 0) {
+    console.log(`\n${"!".repeat(60)}`);
+    console.log(`WARNING: ${skippedSheets.length} WHOLE SHEET(S) WERE SKIPPED:`);
+    console.log("!".repeat(60));
+    for (const s of skippedSheets) {
+      console.log(`  Sheet "${s.sheet}": ${s.reason}`);
+    }
+    console.log(`\nNone of the products in these sheets were imported. Fix the`);
+    console.log(`category issue above and re-run this script — it's safe to`);
+    console.log(`re-run since it skips products that already exist.\n`);
+  } else {
+    console.log(`\nAll sheets matched a category — no sheets were skipped.\n`);
+  }
 }
 
 main().catch((err) => {

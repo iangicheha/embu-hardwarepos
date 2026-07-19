@@ -1,0 +1,1748 @@
+{
+  "Electrical Items": {
+    "prefix": "ELE",
+    "items": [
+      {
+        "name": "Lampholder",
+        "quantity": 9,
+        "unitPrice": 60,
+        "total": 540
+      },
+      {
+        "name": "Plugs",
+        "quantity": 4,
+        "unitPrice": 100,
+        "total": 400
+      },
+      {
+        "name": "Double pole switch",
+        "quantity": 6,
+        "unitPrice": 120,
+        "total": 720
+      },
+      {
+        "name": "Socket double 2 gang",
+        "quantity": 8,
+        "unitPrice": 250,
+        "total": 2000
+      },
+      {
+        "name": "Switch 1 gang 2 way",
+        "quantity": 18,
+        "unitPrice": 100,
+        "total": 1800
+      },
+      {
+        "name": "Single socket",
+        "quantity": 15,
+        "unitPrice": 150,
+        "total": 2250
+      },
+      {
+        "name": "Cable clips 12mm (packet)",
+        "quantity": 11,
+        "unitPrice": 130,
+        "total": 1430
+      },
+      {
+        "name": "Cable clips 9mm (packet)",
+        "quantity": 2,
+        "unitPrice": 110,
+        "total": 220
+      },
+      {
+        "name": "Cable clips 10mm (packet)",
+        "quantity": 1,
+        "unitPrice": 120,
+        "total": 120
+      },
+      {
+        "name": "Bulb 9W",
+        "quantity": 9,
+        "unitPrice": 120,
+        "total": 1080
+      },
+      {
+        "name": "Bulb 5W",
+        "quantity": 8,
+        "unitPrice": 100,
+        "total": 800
+      },
+      {
+        "name": "Bulb 7W",
+        "quantity": 11,
+        "unitPrice": 100,
+        "total": 1100
+      },
+      {
+        "name": "Black tape",
+        "quantity": 46,
+        "unitPrice": 50,
+        "total": 2300
+      },
+      {
+        "name": "White tape",
+        "quantity": 28,
+        "unitPrice": 50,
+        "total": 1400
+      },
+      {
+        "name": "Single switch box (white)",
+        "quantity": 21,
+        "unitPrice": 30,
+        "total": 630
+      },
+      {
+        "name": "Double switch box (white)",
+        "quantity": 39,
+        "unitPrice": 60,
+        "total": 2340
+      },
+      {
+        "name": "Single switch box (black)",
+        "quantity": 80,
+        "unitPrice": 30,
+        "total": 2400
+      },
+      {
+        "name": "Double switch box (black)",
+        "quantity": 27,
+        "unitPrice": 50,
+        "total": 1350
+      },
+      {
+        "name": "Junction box (black)",
+        "quantity": 20,
+        "unitPrice": 30,
+        "total": 600
+      },
+      {
+        "name": "Electric coil",
+        "quantity": 2,
+        "unitPrice": 260,
+        "total": 520
+      },
+      {
+        "name": "Voltage tester",
+        "quantity": 39,
+        "unitPrice": 50,
+        "total": 1950
+      }
+    ],
+    "productCount": 21,
+    "totalPurchases": 25950
+  },
+  "Garden Tools": {
+    "prefix": "GAR",
+    "items": [
+      {
+        "name": "Rake head only",
+        "quantity": 4,
+        "unitPrice": 280,
+        "total": 1120
+      },
+      {
+        "name": "Rake (full, with handle)",
+        "quantity": 4,
+        "unitPrice": 450,
+        "total": 1800
+      },
+      {
+        "name": "Pickaxe head",
+        "quantity": 1,
+        "unitPrice": 650,
+        "total": 650
+      },
+      {
+        "name": "Panga - Alligator",
+        "quantity": 5,
+        "unitPrice": 500,
+        "total": 2500
+      },
+      {
+        "name": "Panga - Knicker big",
+        "quantity": 7,
+        "unitPrice": 250,
+        "total": 1750
+      },
+      {
+        "name": "Panga - Knicker small",
+        "quantity": 4,
+        "unitPrice": 200,
+        "total": 800
+      },
+      {
+        "name": "Slasher",
+        "quantity": 1,
+        "unitPrice": 280,
+        "total": 280
+      },
+      {
+        "name": "Fork jembe head (type 1)",
+        "quantity": 4,
+        "unitPrice": 550,
+        "total": 2200
+      },
+      {
+        "name": "Fork jembe head (type 2)",
+        "quantity": 2,
+        "unitPrice": 650,
+        "total": 1300
+      },
+      {
+        "name": "Jembe head",
+        "quantity": 2,
+        "unitPrice": 500,
+        "total": 1000
+      },
+      {
+        "name": "Fencing shear - wood handle",
+        "quantity": 1,
+        "unitPrice": 300,
+        "total": 300
+      },
+      {
+        "name": "Fencing shear - plastic handle",
+        "quantity": 6,
+        "unitPrice": 350,
+        "total": 2100
+      },
+      {
+        "name": "Hack saw",
+        "quantity": 9,
+        "unitPrice": 350,
+        "total": 3150
+      },
+      {
+        "name": "Handsaw wood 24 inch",
+        "quantity": 3,
+        "unitPrice": 300,
+        "total": 900
+      },
+      {
+        "name": "Handsaw wood 16 inch",
+        "quantity": 6,
+        "unitPrice": 250,
+        "total": 1500
+      },
+      {
+        "name": "Handsaw wood 20 inch",
+        "quantity": 3,
+        "unitPrice": 300,
+        "total": 900
+      },
+      {
+        "name": "Curved pruning saw",
+        "quantity": 6,
+        "unitPrice": 300,
+        "total": 1800
+      },
+      {
+        "name": "Hammer - rubber handle",
+        "quantity": 7,
+        "unitPrice": 500,
+        "total": 3500
+      },
+      {
+        "name": "Hammer - juakali",
+        "quantity": 9,
+        "unitPrice": 350,
+        "total": 3150
+      },
+      {
+        "name": "Hammer - rubber handle (1200)",
+        "quantity": 2,
+        "unitPrice": 1200,
+        "total": 2400
+      },
+      {
+        "name": "Spade",
+        "quantity": 6,
+        "unitPrice": 550,
+        "total": 3300
+      },
+      {
+        "name": "Sprayer",
+        "quantity": 1,
+        "unitPrice": 1800,
+        "total": 1800
+      },
+      {
+        "name": "Other saw",
+        "quantity": 1,
+        "unitPrice": 330,
+        "total": 330
+      },
+      {
+        "name": "Other saw",
+        "quantity": 1,
+        "unitPrice": 300,
+        "total": 300
+      },
+      {
+        "name": "Other saw",
+        "quantity": 2,
+        "unitPrice": 380,
+        "total": 760
+      },
+      {
+        "name": "Axe head",
+        "quantity": 3,
+        "unitPrice": 800,
+        "total": 2400
+      }
+    ],
+    "productCount": 26,
+    "totalPurchases": 41990
+  },
+  "Painting Tools & Materials": {
+    "prefix": "PTM",
+    "items": [
+      {
+        "name": "Paint brush 5 inch",
+        "quantity": 27,
+        "unitPrice": 150,
+        "total": 4050
+      },
+      {
+        "name": "Paint brush 2 inch",
+        "quantity": 19,
+        "unitPrice": 70,
+        "total": 1330
+      },
+      {
+        "name": "Paint brush 4 inch",
+        "quantity": 9,
+        "unitPrice": 120,
+        "total": 1080
+      },
+      {
+        "name": "Paint brush 3 inch",
+        "quantity": 26,
+        "unitPrice": 100,
+        "total": 2600
+      },
+      {
+        "name": "Paint brush 6 inch",
+        "quantity": 12,
+        "unitPrice": 170,
+        "total": 2040
+      },
+      {
+        "name": "Paint brush 3/4 inch",
+        "quantity": 1,
+        "unitPrice": 40,
+        "total": 40
+      },
+      {
+        "name": "Paint brush 25mm",
+        "quantity": 4,
+        "unitPrice": 40,
+        "total": 160
+      },
+      {
+        "name": "Paint roller",
+        "quantity": 8,
+        "unitPrice": 250,
+        "total": 2000
+      },
+      {
+        "name": "Thinner 1 litre (brand A)",
+        "quantity": 6,
+        "unitPrice": 300,
+        "total": 1800
+      },
+      {
+        "name": "Thinner 1 litre (brand B)",
+        "quantity": 12,
+        "unitPrice": 260,
+        "total": 3120
+      },
+      {
+        "name": "Turpentine 500ml",
+        "quantity": 6,
+        "unitPrice": 220,
+        "total": 1320
+      },
+      {
+        "name": "Turpentine 1 litre",
+        "quantity": 3,
+        "unitPrice": 400,
+        "total": 1200
+      }
+    ],
+    "productCount": 12,
+    "totalPurchases": 20740
+  },
+  "Bathroom & Toiletry": {
+    "prefix": "BAT",
+    "items": [
+      {
+        "name": "Flush handle - light gauge",
+        "quantity": 20,
+        "unitPrice": 200,
+        "total": 4000
+      },
+      {
+        "name": "Flush handle - heavy gauge",
+        "quantity": 3,
+        "unitPrice": 350,
+        "total": 1050
+      },
+      {
+        "name": "Wall tap - star handle",
+        "quantity": 6,
+        "unitPrice": 650,
+        "total": 3900
+      },
+      {
+        "name": "Top flush plastic cistern",
+        "quantity": 4,
+        "unitPrice": 1500,
+        "total": 6000
+      },
+      {
+        "name": "High level flush",
+        "quantity": 1,
+        "unitPrice": 1500,
+        "total": 1500
+      },
+      {
+        "name": "Water tank float valve - Lirlee",
+        "quantity": 6,
+        "unitPrice": 650,
+        "total": 3900
+      },
+      {
+        "name": "Water tank float valve - Peckler",
+        "quantity": 5,
+        "unitPrice": 700,
+        "total": 3500
+      },
+      {
+        "name": "Toilet pan",
+        "quantity": 1,
+        "unitPrice": 2900,
+        "total": 2900
+      },
+      {
+        "name": "Toilet bowl",
+        "quantity": 2,
+        "unitPrice": 3500,
+        "total": 7000
+      },
+      {
+        "name": "Toilet pump - big",
+        "quantity": 4,
+        "unitPrice": 140,
+        "total": 560
+      },
+      {
+        "name": "Toilet pump - small",
+        "quantity": 5,
+        "unitPrice": 120,
+        "total": 600
+      },
+      {
+        "name": "Shower head",
+        "quantity": 19,
+        "unitPrice": 100,
+        "total": 1900
+      },
+      {
+        "name": "Toilet seat cover",
+        "quantity": 5,
+        "unitPrice": 600,
+        "total": 3000
+      },
+      {
+        "name": "Syphon cistern",
+        "quantity": 15,
+        "unitPrice": 350,
+        "total": 5250
+      },
+      {
+        "name": "Plastic cistern fitting",
+        "quantity": 4,
+        "unitPrice": 600,
+        "total": 2400
+      },
+      {
+        "name": "Water tap - Pegler",
+        "quantity": 7,
+        "unitPrice": 500,
+        "total": 3500
+      },
+      {
+        "name": "Water tap - Lirlee",
+        "quantity": 21,
+        "unitPrice": 400,
+        "total": 8400
+      },
+      {
+        "name": "Brass gate valve - Lirlee",
+        "quantity": 2,
+        "unitPrice": 500,
+        "total": 1000
+      },
+      {
+        "name": "Brass gate valve - Pegler",
+        "quantity": 11,
+        "unitPrice": 600,
+        "total": 6600
+      },
+      {
+        "name": "Brass ball valve - Lirlee",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      },
+      {
+        "name": "Cartoon lockable tap",
+        "quantity": 2,
+        "unitPrice": 100,
+        "total": 200
+      },
+      {
+        "name": "Plastic tap",
+        "quantity": 24,
+        "unitPrice": 100,
+        "total": 2400
+      },
+      {
+        "name": "PPR gate valve",
+        "quantity": 7,
+        "unitPrice": 200,
+        "total": 1400
+      },
+      {
+        "name": "Wall tap",
+        "quantity": 2,
+        "unitPrice": 650,
+        "total": 1300
+      },
+      {
+        "name": "Ball valve - cistern",
+        "quantity": 6,
+        "unitPrice": 250,
+        "total": 1500
+      },
+      {
+        "name": "Sink - single medium",
+        "quantity": 1,
+        "unitPrice": 1500,
+        "total": 1500
+      },
+      {
+        "name": "Sink - single one hole",
+        "quantity": 2,
+        "unitPrice": 200,
+        "total": 400
+      },
+      {
+        "name": "Sink - light heavy",
+        "quantity": 1,
+        "unitPrice": 3000,
+        "total": 3000
+      },
+      {
+        "name": "Sink - double hole",
+        "quantity": 1,
+        "unitPrice": 4500,
+        "total": 4500
+      }
+    ],
+    "productCount": 29,
+    "totalPurchases": 83910
+  },
+  "General Hardware": {
+    "prefix": "GHW",
+    "items": [
+      {
+        "name": "Plumb bob",
+        "quantity": 21,
+        "unitPrice": 200,
+        "total": 4200
+      },
+      {
+        "name": "Chair pins (pack)",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      },
+      {
+        "name": "Open screw hook (pack)",
+        "quantity": 8,
+        "unitPrice": 150,
+        "total": 1200
+      },
+      {
+        "name": "Padlock 25mm",
+        "quantity": 10,
+        "unitPrice": 60,
+        "total": 600
+      },
+      {
+        "name": "Padlock 32mm",
+        "quantity": 14,
+        "unitPrice": 100,
+        "total": 1400
+      },
+      {
+        "name": "Padlock 38mm",
+        "quantity": 13,
+        "unitPrice": 150,
+        "total": 1950
+      },
+      {
+        "name": "Padlock 50mm",
+        "quantity": 3,
+        "unitPrice": 200,
+        "total": 600
+      },
+      {
+        "name": "Padlock 63mm",
+        "quantity": 5,
+        "unitPrice": 350,
+        "total": 1750
+      },
+      {
+        "name": "Concrete nails 1 inch (pack)",
+        "quantity": 2,
+        "unitPrice": 250,
+        "total": 500
+      },
+      {
+        "name": "Concrete nails 1.5 inch (pack)",
+        "quantity": 4,
+        "unitPrice": 250,
+        "total": 1000
+      },
+      {
+        "name": "Concrete nails 2 inch (pack)",
+        "quantity": 1,
+        "unitPrice": 250,
+        "total": 250
+      },
+      {
+        "name": "Concrete nails 2.5 inch (pack)",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      },
+      {
+        "name": "Concrete nails 3 inch (pack)",
+        "quantity": 5,
+        "unitPrice": 250,
+        "total": 1250
+      },
+      {
+        "name": "Concrete nails 4 inch (pack)",
+        "quantity": 4,
+        "unitPrice": 250,
+        "total": 1000
+      },
+      {
+        "name": "Lubricating oil",
+        "quantity": 14,
+        "unitPrice": 50,
+        "total": 700
+      }
+    ],
+    "productCount": 15,
+    "totalPurchases": 17900
+  },
+  "Hand Tools & Measuring": {
+    "prefix": "HTM",
+    "items": [
+      {
+        "name": "File (150 type)",
+        "quantity": 11,
+        "unitPrice": 150,
+        "total": 1650
+      },
+      {
+        "name": "File (120 type)",
+        "quantity": 5,
+        "unitPrice": 120,
+        "total": 600
+      },
+      {
+        "name": "Steel trowel (price not provided)",
+        "quantity": 5,
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "name": "Try square (type 1)",
+        "quantity": 3,
+        "unitPrice": 100,
+        "total": 300
+      },
+      {
+        "name": "Try square (type 2)",
+        "quantity": 1,
+        "unitPrice": 120,
+        "total": 120
+      },
+      {
+        "name": "Try square (type 3)",
+        "quantity": 3,
+        "unitPrice": 150,
+        "total": 450
+      },
+      {
+        "name": "Tape measure 5m - Knicker brand",
+        "quantity": 19,
+        "unitPrice": 100,
+        "total": 1900
+      },
+      {
+        "name": "Tape measure 5m - Kenyos brand",
+        "quantity": 11,
+        "unitPrice": 110,
+        "total": 1210
+      },
+      {
+        "name": "Tape measure 3m - Knicker brand",
+        "quantity": 15,
+        "unitPrice": 90,
+        "total": 1350
+      },
+      {
+        "name": "Tape measure 7.5m - Knicker brand",
+        "quantity": 6,
+        "unitPrice": 150,
+        "total": 900
+      },
+      {
+        "name": "Tape measure 3m - Bsmtis brand",
+        "quantity": 23,
+        "unitPrice": 90,
+        "total": 2070
+      },
+      {
+        "name": "Adjustable spanner 8 inch",
+        "quantity": 4,
+        "unitPrice": 450,
+        "total": 1800
+      },
+      {
+        "name": "Adjustable spanner 10 inch",
+        "quantity": 3,
+        "unitPrice": 600,
+        "total": 1800
+      },
+      {
+        "name": "Adjustable spanner 12 inch",
+        "quantity": 4,
+        "unitPrice": 700,
+        "total": 2800
+      },
+      {
+        "name": "Adjustable spanner 14 inch",
+        "quantity": 4,
+        "unitPrice": 800,
+        "total": 3200
+      },
+      {
+        "name": "Wire brush",
+        "quantity": 8,
+        "unitPrice": 120,
+        "total": 960
+      },
+      {
+        "name": "Ring spanner 14x15 - chrome",
+        "quantity": 7,
+        "unitPrice": 180,
+        "total": 1260
+      },
+      {
+        "name": "Ring spanner 14x15 - normal",
+        "quantity": 26,
+        "unitPrice": 150,
+        "total": 3900
+      },
+      {
+        "name": "Ring spanner 12x13 - normal",
+        "quantity": 17,
+        "unitPrice": 140,
+        "total": 2380
+      },
+      {
+        "name": "Open end spanner 10x11 - chrome",
+        "quantity": 11,
+        "unitPrice": 140,
+        "total": 1540
+      },
+      {
+        "name": "Open end spanner 25x28 - normal",
+        "quantity": 9,
+        "unitPrice": 250,
+        "total": 2250
+      },
+      {
+        "name": "Single ring/open end spanner 14x14 - chrome",
+        "quantity": 4,
+        "unitPrice": 180,
+        "total": 720
+      },
+      {
+        "name": "Pliers - Knicker (Ksh 220 type)",
+        "quantity": 2,
+        "unitPrice": 220,
+        "total": 440
+      },
+      {
+        "name": "Pliers - Knicker (Ksh 250 type)",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      },
+      {
+        "name": "Combination pliers - big",
+        "quantity": 24,
+        "unitPrice": 200,
+        "total": 4800
+      },
+      {
+        "name": "Combination pliers - small",
+        "quantity": 12,
+        "unitPrice": 180,
+        "total": 2160
+      },
+      {
+        "name": "Pliers 6 inch - Fuxiang",
+        "quantity": 4,
+        "unitPrice": 250,
+        "total": 1000
+      },
+      {
+        "name": "Pliers 8 inch - Fuxiang",
+        "quantity": 4,
+        "unitPrice": 300,
+        "total": 1200
+      },
+      {
+        "name": "Pliers - Intco",
+        "quantity": 4,
+        "unitPrice": 280,
+        "total": 1120
+      },
+      {
+        "name": "Hammer - small (Ksh 250 type)",
+        "quantity": 6,
+        "unitPrice": 250,
+        "total": 1500
+      },
+      {
+        "name": "Hammer (Ksh 500 type) - new stock",
+        "quantity": 4,
+        "unitPrice": 500,
+        "total": 2000
+      },
+      {
+        "name": "Hammer (Ksh 1200 type) - new stock",
+        "quantity": 2,
+        "unitPrice": 1200,
+        "total": 2400
+      },
+      {
+        "name": "Hammer - juakali - new stock",
+        "quantity": 10,
+        "unitPrice": 350,
+        "total": 3500
+      },
+      {
+        "name": "Screwdriver - Mosi",
+        "quantity": 7,
+        "unitPrice": 150,
+        "total": 1050
+      },
+      {
+        "name": "Screwdriver - Goodmate",
+        "quantity": 10,
+        "unitPrice": 120,
+        "total": 1200
+      },
+      {
+        "name": "Screwdriver - Exclusive",
+        "quantity": 5,
+        "unitPrice": 120,
+        "total": 600
+      },
+      {
+        "name": "Screwdriver - Intco",
+        "quantity": 10,
+        "unitPrice": 150,
+        "total": 1500
+      },
+      {
+        "name": "Tile cutter",
+        "quantity": 10,
+        "unitPrice": 150,
+        "total": 1500
+      },
+      {
+        "name": "Iron jack plane",
+        "quantity": 1,
+        "unitPrice": 600,
+        "total": 600
+      },
+      {
+        "name": "Screwdriver - fine durable",
+        "quantity": 6,
+        "unitPrice": 500,
+        "total": 3000
+      },
+      {
+        "name": "Screwdriver - Baku",
+        "quantity": 6,
+        "unitPrice": 300,
+        "total": 1800
+      },
+      {
+        "name": "Spirit level (Ksh 200 type)",
+        "quantity": 17,
+        "unitPrice": 200,
+        "total": 3400
+      },
+      {
+        "name": "Spirit level (Ksh 170 type)",
+        "quantity": 2,
+        "unitPrice": 170,
+        "total": 340
+      },
+      {
+        "name": "Spirit level (Ksh 220 type)",
+        "quantity": 2,
+        "unitPrice": 220,
+        "total": 440
+      },
+      {
+        "name": "Chisel scraper",
+        "quantity": 20,
+        "unitPrice": 100,
+        "total": 2000
+      },
+      {
+        "name": "Tag hammer",
+        "quantity": 6,
+        "unitPrice": 400,
+        "total": 2400
+      },
+      {
+        "name": "Stainless steel trowel - Knicker (Ksh 150 type)",
+        "quantity": 11,
+        "unitPrice": 150,
+        "total": 1650
+      },
+      {
+        "name": "Stainless steel trowel - Knicker (Ksh 120 type)",
+        "quantity": 5,
+        "unitPrice": 120,
+        "total": 600
+      }
+    ],
+    "productCount": 48,
+    "totalPurchases": 76110
+  },
+  "Window & Lock Fittings": {
+    "prefix": "WLF",
+    "items": [
+      {
+        "name": "Window stay",
+        "quantity": 8,
+        "unitPrice": 120,
+        "total": 960
+      },
+      {
+        "name": "Window fastener",
+        "quantity": 56,
+        "unitPrice": 120,
+        "total": 6720
+      },
+      {
+        "name": "Lock bolt - new",
+        "quantity": 6,
+        "unitPrice": 120,
+        "total": 720
+      },
+      {
+        "name": "Lock bolt - juakali",
+        "quantity": 14,
+        "unitPrice": 70,
+        "total": 980
+      },
+      {
+        "name": "Tower bolt",
+        "quantity": 22,
+        "unitPrice": 80,
+        "total": 1760
+      },
+      {
+        "name": "Lock bolt juakali (Ksh 120 type)",
+        "quantity": 37,
+        "unitPrice": 120,
+        "total": 4440
+      },
+      {
+        "name": "Lock bolt juakali (Ksh 210 type)",
+        "quantity": 15,
+        "unitPrice": 210,
+        "total": 3150
+      },
+      {
+        "name": "Lock bolt juakali (Ksh 100 type)",
+        "quantity": 13,
+        "unitPrice": 100,
+        "total": 1300
+      },
+      {
+        "name": "Lock bolt juakali (Ksh 50 type)",
+        "quantity": 25,
+        "unitPrice": 50,
+        "total": 1250
+      },
+      {
+        "name": "Bed nuts",
+        "quantity": 19,
+        "unitPrice": 50,
+        "total": 950
+      },
+      {
+        "name": "Bed nuts - juakali",
+        "quantity": 6,
+        "unitPrice": 50,
+        "total": 300
+      }
+    ],
+    "productCount": 11,
+    "totalPurchases": 22530
+  },
+  "Screws & Fasteners": {
+    "prefix": "SCF",
+    "items": [
+      {
+        "name": "MDF screws 25mm (pack)",
+        "quantity": 5,
+        "unitPrice": 250,
+        "total": 1250
+      },
+      {
+        "name": "Gypsum screws 40mm (pack)",
+        "quantity": 3,
+        "unitPrice": 280,
+        "total": 840
+      },
+      {
+        "name": "Wood screw 3 inch (packet)",
+        "quantity": 1,
+        "unitPrice": 300,
+        "total": 300
+      },
+      {
+        "name": "Wood screw 1.5 inch (packet)",
+        "quantity": 4,
+        "unitPrice": 180,
+        "total": 720
+      },
+      {
+        "name": "Star screw (Ksh 220 type)",
+        "quantity": 1,
+        "unitPrice": 220,
+        "total": 220
+      },
+      {
+        "name": "Star screw (Ksh 70 type)",
+        "quantity": 5,
+        "unitPrice": 70,
+        "total": 350
+      },
+      {
+        "name": "Flat screw",
+        "quantity": 4,
+        "unitPrice": 25,
+        "total": 100
+      }
+    ],
+    "productCount": 7,
+    "totalPurchases": 3780
+  },
+  "Ropes": {
+    "prefix": "ROP",
+    "items": [
+      {
+        "name": "Rope (general)",
+        "quantity": 11,
+        "unitPrice": 100,
+        "total": 1100
+      },
+      {
+        "name": "Rope 8x10",
+        "quantity": 4,
+        "unitPrice": 180,
+        "total": 720
+      },
+      {
+        "name": "Rope 10x10",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      },
+      {
+        "name": "Rope 9x10",
+        "quantity": 3,
+        "unitPrice": 220,
+        "total": 660
+      },
+      {
+        "name": "Rope 7x10",
+        "quantity": 1,
+        "unitPrice": 130,
+        "total": 130
+      },
+      {
+        "name": "Rope 6x10",
+        "quantity": 7,
+        "unitPrice": 110,
+        "total": 770
+      },
+      {
+        "name": "Rope (many colors) 42ply",
+        "quantity": 19,
+        "unitPrice": 70,
+        "total": 1330
+      },
+      {
+        "name": "Rope (many colors) 16ply",
+        "quantity": 13,
+        "unitPrice": 50,
+        "total": 650
+      }
+    ],
+    "productCount": 8,
+    "totalPurchases": 6110
+  },
+  "Plumbing & Piping": {
+    "prefix": "PLP",
+    "items": [
+      {
+        "name": "Waste gully trap",
+        "quantity": 3,
+        "unitPrice": 150,
+        "total": 450
+      },
+      {
+        "name": "Connection tubes",
+        "quantity": 6,
+        "unitPrice": 300,
+        "total": 1800
+      },
+      {
+        "name": "PVC fitting and piping 100ml",
+        "quantity": 11,
+        "unitPrice": 280,
+        "total": 3080
+      },
+      {
+        "name": "PVC fitting and piping 50ml",
+        "quantity": 10,
+        "unitPrice": 200,
+        "total": 2000
+      },
+      {
+        "name": "Contact pipe 100ml",
+        "quantity": 4,
+        "unitPrice": 250,
+        "total": 1000
+      },
+      {
+        "name": "Piping 1 1/4 inch",
+        "quantity": 55,
+        "unitPrice": 60,
+        "total": 3300
+      },
+      {
+        "name": "Piping 1 1/2 inch",
+        "quantity": 18,
+        "unitPrice": 150,
+        "total": 2700
+      },
+      {
+        "name": "Piping 2 inch",
+        "quantity": 12,
+        "unitPrice": 100,
+        "total": 1200
+      },
+      {
+        "name": "Flex tube metallic - small",
+        "quantity": 13,
+        "unitPrice": 200,
+        "total": 2600
+      },
+      {
+        "name": "Flex tube metallic - long",
+        "quantity": 12,
+        "unitPrice": 250,
+        "total": 3000
+      },
+      {
+        "name": "Bottle trap 1 1/2 inch",
+        "quantity": 12,
+        "unitPrice": 180,
+        "total": 2160
+      },
+      {
+        "name": "Flexible magic connector",
+        "quantity": 27,
+        "unitPrice": 180,
+        "total": 4860
+      },
+      {
+        "name": "Plug",
+        "quantity": 11,
+        "unitPrice": 100,
+        "total": 1100
+      },
+      {
+        "name": "Plug - small",
+        "quantity": 17,
+        "unitPrice": 40,
+        "total": 680
+      },
+      {
+        "name": "Plug - medium",
+        "quantity": 4,
+        "unitPrice": 60,
+        "total": 240
+      },
+      {
+        "name": "Second pile 3/4 inch",
+        "quantity": 38,
+        "unitPrice": 30,
+        "total": 1140
+      },
+      {
+        "name": "Second pile 1/2 inch",
+        "quantity": 32,
+        "unitPrice": 30,
+        "total": 960
+      },
+      {
+        "name": "PVC male connector 3/4 inch",
+        "quantity": 17,
+        "unitPrice": 40,
+        "total": 680
+      },
+      {
+        "name": "PVC male connector 1/2 inch",
+        "quantity": 15,
+        "unitPrice": 40,
+        "total": 600
+      },
+      {
+        "name": "T-pipe 1/2 inch",
+        "quantity": 21,
+        "unitPrice": 30,
+        "total": 630
+      },
+      {
+        "name": "Big bend 1 inch",
+        "quantity": 8,
+        "unitPrice": 50,
+        "total": 400
+      },
+      {
+        "name": "PVC socket 3/4 inch",
+        "quantity": 10,
+        "unitPrice": 30,
+        "total": 300
+      },
+      {
+        "name": "PVC socket 1/2 inch",
+        "quantity": 47,
+        "unitPrice": 20,
+        "total": 940
+      },
+      {
+        "name": "Male tee 1/2 by 1/2",
+        "quantity": 56,
+        "unitPrice": 60,
+        "total": 3360
+      },
+      {
+        "name": "Female tee 3/4 by 3/4",
+        "quantity": 10,
+        "unitPrice": 70,
+        "total": 700
+      },
+      {
+        "name": "Male adapter",
+        "quantity": 8,
+        "unitPrice": 100,
+        "total": 800
+      },
+      {
+        "name": "Male-female tee 3/4 by 1/2",
+        "quantity": 20,
+        "unitPrice": 70,
+        "total": 1400
+      },
+      {
+        "name": "Female adapter 3/4 by 1/2",
+        "quantity": 6,
+        "unitPrice": 70,
+        "total": 420
+      },
+      {
+        "name": "Male adapter 3/4 by 1/2",
+        "quantity": 10,
+        "unitPrice": 70,
+        "total": 700
+      },
+      {
+        "name": "Female elbow 3/4 by 1/2",
+        "quantity": 59,
+        "unitPrice": 60,
+        "total": 3540
+      },
+      {
+        "name": "Male elbow 3/4 by 1/2",
+        "quantity": 11,
+        "unitPrice": 60,
+        "total": 660
+      },
+      {
+        "name": "Female adapter 3/4 by 3/4",
+        "quantity": 11,
+        "unitPrice": 70,
+        "total": 770
+      },
+      {
+        "name": "Female tee 1/2 by 1/2",
+        "quantity": 11,
+        "unitPrice": 60,
+        "total": 660
+      },
+      {
+        "name": "Female tee 3/4 by 1/2",
+        "quantity": 15,
+        "unitPrice": 60,
+        "total": 900
+      },
+      {
+        "name": "Flexible cable 1/2 by 30",
+        "quantity": 7,
+        "unitPrice": 80,
+        "total": 560
+      },
+      {
+        "name": "PPR elbow 3/4",
+        "quantity": 8,
+        "unitPrice": 30,
+        "total": 240
+      },
+      {
+        "name": "PPR tee 3/4",
+        "quantity": 49,
+        "unitPrice": 40,
+        "total": 1960
+      },
+      {
+        "name": "PPR plain socket 3/4",
+        "quantity": 15,
+        "unitPrice": 40,
+        "total": 600
+      },
+      {
+        "name": "Angle valve",
+        "quantity": 17,
+        "unitPrice": 300,
+        "total": 5100
+      },
+      {
+        "name": "Sink hole",
+        "quantity": 12,
+        "unitPrice": 100,
+        "total": 1200
+      },
+      {
+        "name": "Thread seal tape - small",
+        "quantity": 24,
+        "unitPrice": 30,
+        "total": 720
+      },
+      {
+        "name": "Thread seal tape - big",
+        "quantity": 22,
+        "unitPrice": 100,
+        "total": 2200
+      }
+    ],
+    "productCount": 42,
+    "totalPurchases": 62310
+  },
+  "Masonry & Hand Tools": {
+    "prefix": "MAH",
+    "items": [
+      {
+        "name": "Stainless steel trowel",
+        "quantity": 28,
+        "unitPrice": 100,
+        "total": 2800
+      },
+      {
+        "name": "Stainless steel trowel",
+        "quantity": 23,
+        "unitPrice": 120,
+        "total": 2760
+      },
+      {
+        "name": "Stainless steel trowel",
+        "quantity": 7,
+        "unitPrice": 150,
+        "total": 1050
+      },
+      {
+        "name": "Stainless steel trowel",
+        "quantity": 8,
+        "unitPrice": 180,
+        "total": 1440
+      },
+      {
+        "name": "Stainless steel trowel",
+        "quantity": 2,
+        "unitPrice": 300,
+        "total": 600
+      },
+      {
+        "name": "Trowel - juakali",
+        "quantity": 2,
+        "unitPrice": 300,
+        "total": 600
+      },
+      {
+        "name": "Trowel - juakali",
+        "quantity": 2,
+        "unitPrice": 250,
+        "total": 500
+      },
+      {
+        "name": "Trowel - plastic handle",
+        "quantity": 6,
+        "unitPrice": 200,
+        "total": 1200
+      },
+      {
+        "name": "Tin cutter - big",
+        "quantity": 2,
+        "unitPrice": 450,
+        "total": 900
+      },
+      {
+        "name": "Tin cutter - small",
+        "quantity": 3,
+        "unitPrice": 400,
+        "total": 1200
+      },
+      {
+        "name": "Broom brush (brush only)",
+        "quantity": 3,
+        "unitPrice": 250,
+        "total": 750
+      }
+    ],
+    "productCount": 11,
+    "totalPurchases": 13800
+  },
+  "Fasteners & Fixings": {
+    "prefix": "FAF",
+    "items": [
+      {
+        "name": "Tapin screw 40mm (pack)",
+        "quantity": 3,
+        "unitPrice": 500,
+        "total": 1500
+      },
+      {
+        "name": "Tapin screw 25mm (pack)",
+        "quantity": 2,
+        "unitPrice": 40,
+        "total": 80
+      },
+      {
+        "name": "Expand nails with screw (pack)",
+        "quantity": 1,
+        "unitPrice": 150,
+        "total": 150
+      }
+    ],
+    "productCount": 3,
+    "totalPurchases": 1730
+  },
+  "Adhesives & Sealants": {
+    "prefix": "ADS",
+    "items": [
+      {
+        "name": "Gasket maker (RTV silicon)",
+        "quantity": 42,
+        "unitPrice": 150,
+        "total": 6300
+      },
+      {
+        "name": "GP silicon",
+        "quantity": 4,
+        "unitPrice": 250,
+        "total": 1000
+      },
+      {
+        "name": "Wood glue - type 1",
+        "quantity": 6,
+        "unitPrice": 250,
+        "total": 1500
+      },
+      {
+        "name": "Wood glue - type 2",
+        "quantity": 11,
+        "unitPrice": 220,
+        "total": 2420
+      },
+      {
+        "name": "Water proof cement",
+        "quantity": 25,
+        "unitPrice": 150,
+        "total": 3750
+      },
+      {
+        "name": "Roof sealer - Bodex 200g",
+        "quantity": 12,
+        "unitPrice": 100,
+        "total": 1200
+      },
+      {
+        "name": "Roof sealer - Bodex 300g",
+        "quantity": 8,
+        "unitPrice": 200,
+        "total": 1600
+      },
+      {
+        "name": "Roof sealer - Bodex 1kg",
+        "quantity": 2,
+        "unitPrice": 250,
+        "total": 500
+      }
+    ],
+    "productCount": 8,
+    "totalPurchases": 18270
+  },
+  "Household Fittings": {
+    "prefix": "HSF",
+    "items": [
+      {
+        "name": "Double curtain rod - without lock",
+        "quantity": 39,
+        "unitPrice": 100,
+        "total": 3900
+      },
+      {
+        "name": "Double curtain rod - with lock",
+        "quantity": 16,
+        "unitPrice": 110,
+        "total": 1760
+      },
+      {
+        "name": "Door lock - type 1",
+        "quantity": 5,
+        "unitPrice": 600,
+        "total": 3000
+      },
+      {
+        "name": "Door lock - type 2",
+        "quantity": 3,
+        "unitPrice": 850,
+        "total": 2550
+      },
+      {
+        "name": "Mop head",
+        "quantity": 3,
+        "unitPrice": 350,
+        "total": 1050
+      },
+      {
+        "name": "Broom brush (Ksh 450 type)",
+        "quantity": 10,
+        "unitPrice": 450,
+        "total": 4500
+      }
+    ],
+    "productCount": 6,
+    "totalPurchases": 16760
+  },
+  "Building Materials & Chemicals": {
+    "prefix": "BMC",
+    "items": [
+      {
+        "name": "Chicken wire (1m roll)",
+        "quantity": 4,
+        "unitPrice": 100,
+        "total": 400
+      },
+      {
+        "name": "Polythene bag (1m roll)",
+        "quantity": 1,
+        "unitPrice": 100,
+        "total": 100
+      },
+      {
+        "name": "Battery water chloride oxide",
+        "quantity": 3,
+        "unitPrice": 100,
+        "total": 300
+      }
+    ],
+    "productCount": 3,
+    "totalPurchases": 800
+  },
+  "Brackets & Hinges": {
+    "prefix": "BRH",
+    "items": [
+      {
+        "name": "Shelf bracket 10x12",
+        "quantity": 4,
+        "unitPrice": 75,
+        "total": 300
+      },
+      {
+        "name": "Shelf bracket 8x10",
+        "quantity": 22,
+        "unitPrice": 60,
+        "total": 1320
+      },
+      {
+        "name": "Shelf bracket 6x8",
+        "quantity": 4,
+        "unitPrice": 45,
+        "total": 180
+      },
+      {
+        "name": "Jua kali hinge - small",
+        "quantity": 9,
+        "unitPrice": 50,
+        "total": 450
+      },
+      {
+        "name": "Jua kali hinge - big",
+        "quantity": 13,
+        "unitPrice": 50,
+        "total": 650
+      },
+      {
+        "name": "Butt hinge 2.5 inch",
+        "quantity": 26,
+        "unitPrice": 25,
+        "total": 650
+      },
+      {
+        "name": "Butt hinge 2 inch",
+        "quantity": 72,
+        "unitPrice": 20,
+        "total": 1440
+      },
+      {
+        "name": "Steel hinge 4x3 inch",
+        "quantity": 4,
+        "unitPrice": 300,
+        "total": 1200
+      }
+    ],
+    "productCount": 8,
+    "totalPurchases": 6190
+  },
+  "Motorcycle & Bicycle Parts": {
+    "prefix": "MBP",
+    "items": [
+      {
+        "name": "Brake shoes",
+        "quantity": 20,
+        "unitPrice": 200,
+        "total": 4000
+      },
+      {
+        "name": "Bicycle bell (Ksh 200 type)",
+        "quantity": 5,
+        "unitPrice": 200,
+        "total": 1000
+      },
+      {
+        "name": "Bicycle bell (Ksh 150 type)",
+        "quantity": 4,
+        "unitPrice": 150,
+        "total": 600
+      },
+      {
+        "name": "Turn signal",
+        "quantity": 3,
+        "unitPrice": 200,
+        "total": 600
+      },
+      {
+        "name": "Motorcycle chain",
+        "quantity": 3,
+        "unitPrice": 500,
+        "total": 1500
+      },
+      {
+        "name": "Patches",
+        "quantity": 11,
+        "unitPrice": 30,
+        "total": 330
+      },
+      {
+        "name": "Signal bulb",
+        "quantity": 11,
+        "unitPrice": 20,
+        "total": 220
+      },
+      {
+        "name": "Bike battery",
+        "quantity": 1,
+        "unitPrice": 1500,
+        "total": 1500
+      },
+      {
+        "name": "Bearing",
+        "quantity": 39,
+        "unitPrice": 100,
+        "total": 3900
+      },
+      {
+        "name": "Super tubes",
+        "quantity": 10,
+        "unitPrice": 280,
+        "total": 2800
+      },
+      {
+        "name": "Motorcycle flasher",
+        "quantity": 8,
+        "unitPrice": 100,
+        "total": 800
+      }
+    ],
+    "productCount": 11,
+    "totalPurchases": 17250
+  },
+  "Safety Equipment": {
+    "prefix": "SAF",
+    "items": [
+      {
+        "name": "Safety goggles",
+        "quantity": 5,
+        "unitPrice": 200,
+        "total": 1000
+      }
+    ],
+    "productCount": 1,
+    "totalPurchases": 1000
+  }
+}
