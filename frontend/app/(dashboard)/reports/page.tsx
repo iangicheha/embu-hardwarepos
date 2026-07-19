@@ -204,7 +204,7 @@ export default function ReportsPage() {
         <CardHeader>
           <CardTitle className="text-base">Find an Order</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Paste an order number from the Dashboard's Recent Orders to see the products in that sale.
+            Paste an order number from the Dashboard&apos;s Recent Orders to see the products in that sale.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
