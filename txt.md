@@ -1,0 +1,1 @@
+I have two product lists: (1) an Excel file with the full master list of products, and (2) the list of products currently showing in my POS's product sidebar. Compare them and tell me which products from the Excel file are missing from the POS sidebar." and display them here .
