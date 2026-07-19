@@ -19,5 +19,16 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "generated_extras.ts",
+    "extract_excel.js",
+    "generate_data.js",
+    "patch_data.js",
+    "seed-products.ts",
+    "seed-categories.ts",
+    "check-missing-products.ts",
+    "list-pos-products.ts",
+    "scripts/**/*"
+  ]
 }
