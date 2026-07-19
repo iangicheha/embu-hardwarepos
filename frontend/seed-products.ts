@@ -80,8 +80,11 @@ async function getCategoryIdMap(token: string): Promise<Map<string, string>> {
   return map;
 }
 
-async function getExistingProductNames(token: string): Promise<Set<string>> {
+async function getExistingProducts(
+  token: string
+): Promise<{ names: Set<string>; codes: Set<string> }> {
   const names = new Set<string>();
+  const codes = new Set<string>();
   let page = 1;
   while (true) {
     const res = await fetch(`${API_BASE_URL}/inventory?page=${page}&limit=100`, {
@@ -90,12 +93,28 @@ async function getExistingProductNames(token: string): Promise<Set<string>> {
     if (!res.ok) throw new Error(`Failed to fetch products: ${res.status} ${await res.text()}`);
     const body = await res.json();
     const products = body.data.products ?? [];
-    for (const p of products) names.add(p.name);
+    for (const p of products) {
+      names.add(p.name);
+      if (p.productCode) codes.add(p.productCode);
+    }
     const pagination = body.data.pagination;
     if (!pagination || page >= pagination.totalPages) break;
     page++;
   }
-  return names;
+  return { names, codes };
+}
+
+// Given a prefix like "ELE" and the set of codes already in the DB, find the
+// highest existing number for that prefix so new codes continue after it
+// instead of colliding with e.g. ELE-0001 that already exists.
+function highestExistingNumber(prefix: string, existingCodes: Set<string>): number {
+  let max = 0;
+  const re = new RegExp(`^${prefix}-(\\d+)$`);
+  for (const code of existingCodes) {
+    const m = code.match(re);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return max;
 }
 
 function categoryPrefix(categoryName: string): string {
@@ -163,7 +182,7 @@ async function main() {
 
   const token = await login();
   const categoryMap = await getCategoryIdMap(token);
-  const existingNames = await getExistingProductNames(token);
+  const { names: existingNames, codes: existingCodes } = await getExistingProducts(token);
 
   console.log(`\nCategories currently in DB: ${categoryMap.size}`);
   console.log(`Products currently in DB: ${existingNames.size}\n`);
@@ -196,7 +215,9 @@ async function main() {
     }
 
     const prefix = categoryPrefix(categoryName);
-    counters[prefix] = counters[prefix] ?? 0;
+    if (!(prefix in counters)) {
+      counters[prefix] = highestExistingNumber(prefix, existingCodes);
+    }
 
     const rows = readSheetRows(workbook.Sheets[sheetName]);
     console.log(`\n--- ${sheetName} (${rows.length} rows) ---`);
@@ -214,7 +235,13 @@ async function main() {
       }
 
       counters[prefix]++;
-      const productCode = `${prefix}-${String(counters[prefix]).padStart(4, "0")}`;
+      let productCode = `${prefix}-${String(counters[prefix]).padStart(4, "0")}`;
+      // Extra safety: if this exact code somehow already exists (e.g. gaps
+      // in the DB's numbering), keep incrementing until we find a free one.
+      while (existingCodes.has(productCode)) {
+        counters[prefix]++;
+        productCode = `${prefix}-${String(counters[prefix]).padStart(4, "0")}`;
+      }
       const buyingPrice = Math.round(row.sellingPrice * (1 - ESTIMATED_MARGIN));
 
       try {
@@ -229,6 +256,7 @@ async function main() {
         });
         console.log(`  Created: "${row.name}" (${productCode})`);
         existingNames.add(row.name);
+        existingCodes.add(productCode);
         created++;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
