@@ -1,6 +1,8 @@
 import prisma from "../database/prisma";
 import { buildPagination, getPagination } from "../utils/pagination";
 import { AppError } from "../utils/AppError";
+import { logger } from "../config/logger";
+import whatsappService from "./whatsapp.service";
 
 class NotificationService {
   async createNotification(title: string, message: string) {
@@ -10,6 +12,13 @@ class NotificationService {
   }
 
   async notifyLowStock(productName: string, quantity: number, reorderLevel: number) {
+    // WhatsApp send is best-effort and must never block or fail the in-app
+    // notification — it's fired and forgotten here, errors logged inside
+    // whatsappService itself.
+    whatsappService
+      .sendLowStockAlert(productName, quantity, reorderLevel)
+      .catch((err: unknown) => logger.error("WhatsApp low-stock alert failed", err as Error));
+
     return this.createNotification(
       "Low Stock Alert",
       `${productName} is low on stock (${quantity} left, reorder at ${reorderLevel})`
