@@ -1,0 +1,268 @@
+category,productCode,name,sellingPrice,quantity
+"Adhesives & Sealants","AS-0001","Gasket maker (RTV silicon)",150,42
+"Adhesives & Sealants","AS-0002","GP silicon",250,4
+"Adhesives & Sealants","AS-0008","Roof sealer - Bodex 1kg",250,2
+"Adhesives & Sealants","AS-0006","Roof sealer - Bodex 200g",100,12
+"Adhesives & Sealants","AS-0007","Roof sealer - Bodex 300g",200,8
+"Adhesives & Sealants","AS-0005","Water proof cement",150,25
+"Adhesives & Sealants","AS-0003","Wood glue - type 1",250,6
+"Adhesives & Sealants","AS-0004","Wood glue - type 2",220,11
+"Bathroom & Toiletry","BT-0025","Ball valve - cistern",250,6
+"Bathroom & Toiletry","BT-0020","Brass ball valve - Lirlee",250,3
+"Bathroom & Toiletry","BT-0018","Brass gate valve - Lirlee",500,2
+"Bathroom & Toiletry","BT-0019","Brass gate valve - Pegler",600,11
+"Bathroom & Toiletry","BT-0021","Cartoon lockable tap",100,2
+"Bathroom & Toiletry","BT-0002","Flush handle - heavy gauge",350,3
+"Bathroom & Toiletry","BT-0001","Flush handle - light gauge",200,20
+"Bathroom & Toiletry","BT-0005","High level flush",1500,1
+"Bathroom & Toiletry","BT-0015","Plastic cistern fitting",600,4
+"Bathroom & Toiletry","BT-0022","Plastic tap",100,24
+"Bathroom & Toiletry","BT-0023","PPR gate valve",200,7
+"Bathroom & Toiletry","BT-0012","Shower head",100,19
+"Bathroom & Toiletry","BT-0029","Sink - double hole",4500,1
+"Bathroom & Toiletry","BT-0028","Sink - light heavy",3000,1
+"Bathroom & Toiletry","BT-0026","Sink - single medium",1500,1
+"Bathroom & Toiletry","BT-0027","Sink - single one hole",200,2
+"Bathroom & Toiletry","BT-0014","Syphon cistern",350,15
+"Bathroom & Toiletry","BT-0009","Toilet bowl",3500,2
+"Bathroom & Toiletry","BT-0008","Toilet pan",2900,1
+"Bathroom & Toiletry","BT-0010","Toilet pump - big",140,4
+"Bathroom & Toiletry","BT-0011","Toilet pump - small",120,5
+"Bathroom & Toiletry","BT-0013","Toilet seat cover",600,5
+"Bathroom & Toiletry","BT-0004","Top flush plastic cistern",1500,4
+"Bathroom & Toiletry","BT-0024","Wall tap",650,2
+"Bathroom & Toiletry","BT-0003","Wall tap - star handle",650,6
+"Bathroom & Toiletry","BT-0006","Water tank float valve - Lirlee",650,6
+"Bathroom & Toiletry","BT-0007","Water tank float valve - Peckler",700,5
+"Bathroom & Toiletry","BT-0017","Water tap - Lirlee",400,21
+"Bathroom & Toiletry","BT-0016","Water tap - Pegler",500,7
+"Brackets & Hinges","BH-0007","Butt hinge 2 inch",20,72
+"Brackets & Hinges","BH-0006","Butt hinge 2.5 inch",25,26
+"Brackets & Hinges","BH-0005","Jua kali hinge - big",50,13
+"Brackets & Hinges","BH-0004","Jua kali hinge - small",50,9
+"Brackets & Hinges","BH-0001","Shelf bracket 10x12",75,4
+"Brackets & Hinges","BH-0003","Shelf bracket 6x8",45,4
+"Brackets & Hinges","BH-0002","Shelf bracket 8x10",60,22
+"Brackets & Hinges","BH-0008","Steel hinge 4x3 inch",300,4
+"Building Materials","CEM","cement",850,68
+"Building Materials","SWR-001","Steel Wire",1200,26
+"Building Materials & Chemicals","BMC-0003","Battery water chloride oxide",100,3
+"Building Materials & Chemicals","BMC-0001","Chicken wire (1m roll)",100,4
+"Building Materials & Chemicals","BMC-0002","Polythene bag (1m roll)",100,1
+"Electrical","E-0013","Black tape",50,46
+"Electrical","E-0011","Bulb 5W",100,8
+"Electrical","E-0012","Bulb 7W",100,11
+"Electrical","E-0010","Bulb 9W",120,9
+"Electrical","E-0009","Cable clips 10mm (packet)",120,1
+"Electrical","E-0007","Cable clips 12mm (packet)",130,11
+"Electrical","E-0008","Cable clips 9mm (packet)",110,2
+"Electrical","E-0003","Double pole switch",120,6
+"Electrical","E-0018","Double switch box (black)",50,27
+"Electrical","E-0016","Double switch box (white)",60,39
+"Electrical","E-0020","Electric coil",260,2
+"Electrical","E-0019","Junction box (black)",30,20
+"Electrical","E-0001","Lampholder",60,9
+"Electrical","E-0002","Plugs",100,4
+"Electrical","E-0006","Single socket",150,15
+"Electrical","E-0017","Single switch box (black)",30,80
+"Electrical","E-0015","Single switch box (white)",30,21
+"Electrical","E-0004","Socket double 2 gang",250,8
+"Electrical","E-0005","Switch 1 gang 2 way",100,18
+"Electrical","E-0021","Voltage tester",50,39
+"Electrical","E-0014","White tape",50,28
+"Fasteners & Fixings","FF-0003","Expand nails with screw (pack)",150,1
+"Fasteners & Fixings","FF-0002","Tapin screw 25mm (pack)",40,2
+"Fasteners & Fixings","FF-0001","Tapin screw 40mm (pack)",500,3
+"Garden Tools","GT-0024","Axe head",800,3
+"Garden Tools","GT-0017","Curved pruning saw",300,6
+"Garden Tools","GT-0012","Fencing shear - plastic handle",350,6
+"Garden Tools","GT-0011","Fencing shear - wood handle",300,1
+"Garden Tools","GT-0008","Fork jembe head (type 1)",550,4
+"Garden Tools","GT-0009","Fork jembe head (type 2)",650,2
+"Garden Tools","GT-0013","Hack saw",350,9
+"Garden Tools","GT-0019","Hammer - juakali",350,9
+"Garden Tools","GT-0018","Hammer - rubber handle",500,7
+"Garden Tools","GT-0020","Hammer - rubber handle (1200)",1200,2
+"Garden Tools","GT-0015","Handsaw wood 16 inch",250,6
+"Garden Tools","GT-0016","Handsaw wood 20 inch",300,3
+"Garden Tools","GT-0014","Handsaw wood 24 inch",300,3
+"Garden Tools","GT-0010","Jembe head",500,2
+"Garden Tools","GT-0023","Other saw",330,1
+"Garden Tools","GT-0004","Panga - Alligator",500,5
+"Garden Tools","GT-0005","Panga - Knicker big",250,7
+"Garden Tools","GT-0006","Panga - Knicker small",200,4
+"Garden Tools","GT-0003","Pickaxe head",650,1
+"Garden Tools","GT-0002","Rake (full, with handle)",450,4
+"Garden Tools","GT-0001","Rake head only",280,4
+"Garden Tools","GT-0007","Slasher",280,1
+"Garden Tools","GT-0021","Spade",550,6
+"Garden Tools","GT-0022","Sprayer",1800,1
+"General Hardware","GH-0002","Chair pins (pack)",250,3
+"General Hardware","GH-0009","Concrete nails 1 inch (pack)",250,2
+"General Hardware","GH-0010","Concrete nails 1.5 inch (pack)",250,4
+"General Hardware","GH-0011","Concrete nails 2 inch (pack)",250,1
+"General Hardware","GH-0012","Concrete nails 2.5 inch (pack)",250,3
+"General Hardware","GH-0013","Concrete nails 3 inch (pack)",250,5
+"General Hardware","GH-0014","Concrete nails 4 inch (pack)",250,4
+"General Hardware","GH-0015","Lubricating oil",50,14
+"General Hardware","GH-0003","Open screw hook (pack)",150,8
+"General Hardware","GH-0004","Padlock 25mm",60,10
+"General Hardware","GH-0005","Padlock 32mm",100,14
+"General Hardware","GH-0006","Padlock 38mm",150,13
+"General Hardware","GH-0007","Padlock 50mm",200,3
+"General Hardware","GH-0008","Padlock 63mm",350,5
+"General Hardware","GH-0001","Plumb bob",200,21
+"Hand Tools & Measuring","HTM-0012","Adjustable spanner 10 inch",600,3
+"Hand Tools & Measuring","HTM-0013","Adjustable spanner 12 inch",700,4
+"Hand Tools & Measuring","HTM-0014","Adjustable spanner 14 inch",800,4
+"Hand Tools & Measuring","HTM-0011","Adjustable spanner 8 inch",450,4
+"Hand Tools & Measuring","HTM-0044","Chisel scraper",100,20
+"Hand Tools & Measuring","HTM-0024","Combination pliers - big",200,24
+"Hand Tools & Measuring","HTM-0025","Combination pliers - small",180,12
+"Hand Tools & Measuring","HTM-0002","File (120 type)",120,5
+"Hand Tools & Measuring","HTM-0001","File (150 type)",150,11
+"Hand Tools & Measuring","HTM-0032","Hammer - juakali - new stock",350,10
+"Hand Tools & Measuring","HTM-0029","Hammer - small (Ksh 250 type)",250,6
+"Hand Tools & Measuring","HTM-0031","Hammer (Ksh 1200 type) - new stock",1200,2
+"Hand Tools & Measuring","HTM-0030","Hammer (Ksh 500 type) - new stock",500,4
+"Hand Tools & Measuring","HTM-0038","Iron jack plane",600,1
+"Hand Tools & Measuring","HTM-0019","Open end spanner 10x11 - chrome",140,11
+"Hand Tools & Measuring","HTM-0020","Open end spanner 25x28 - normal",250,9
+"Hand Tools & Measuring","HTM-0028","Pliers - Intco",280,4
+"Hand Tools & Measuring","HTM-0022","Pliers - Knicker (Ksh 220 type)",220,2
+"Hand Tools & Measuring","HTM-0023","Pliers - Knicker (Ksh 250 type)",250,3
+"Hand Tools & Measuring","HTM-0026","Pliers 6 inch - Fuxiang",250,4
+"Hand Tools & Measuring","HTM-0027","Pliers 8 inch - Fuxiang",300,4
+"Hand Tools & Measuring","HTM-0018","Ring spanner 12x13 - normal",140,17
+"Hand Tools & Measuring","HTM-0016","Ring spanner 14x15 - chrome",180,7
+"Hand Tools & Measuring","HTM-0017","Ring spanner 14x15 - normal",150,26
+"Hand Tools & Measuring","HTM-0040","Screwdriver - Baku",300,6
+"Hand Tools & Measuring","HTM-0035","Screwdriver - Exclusive",120,5
+"Hand Tools & Measuring","HTM-0039","Screwdriver - fine durable",500,6
+"Hand Tools & Measuring","HTM-0034","Screwdriver - Goodmate",120,10
+"Hand Tools & Measuring","HTM-0036","Screwdriver - Intco",150,10
+"Hand Tools & Measuring","HTM-0033","Screwdriver - Mosi",150,7
+"Hand Tools & Measuring","HTM-0021","Single ring/open end spanner 14x14 - chrome",180,4
+"Hand Tools & Measuring","HTM-0042","Spirit level (Ksh 170 type)",170,2
+"Hand Tools & Measuring","HTM-0041","Spirit level (Ksh 200 type)",200,17
+"Hand Tools & Measuring","HTM-0043","Spirit level (Ksh 220 type)",220,2
+"Hand Tools & Measuring","HTM-0047","Stainless steel trowel - Knicker (Ksh 120 type)",120,5
+"Hand Tools & Measuring","HTM-0046","Stainless steel trowel - Knicker (Ksh 150 type)",150,11
+"Hand Tools & Measuring","HTM-0045","Tag hammer",400,6
+"Hand Tools & Measuring","HTM-0010","Tape measure 3m - Bsmtis brand",90,23
+"Hand Tools & Measuring","HTM-0008","Tape measure 3m - Knicker brand",90,15
+"Hand Tools & Measuring","HTM-0007","Tape measure 5m - Kenyos brand",110,11
+"Hand Tools & Measuring","HTM-0006","Tape measure 5m - Knicker brand",100,19
+"Hand Tools & Measuring","HTM-0009","Tape measure 7.5m - Knicker brand",150,6
+"Hand Tools & Measuring","HTM-0037","Tile cutter",150,10
+"Hand Tools & Measuring","HTM-0003","Try square (type 1)",100,3
+"Hand Tools & Measuring","HTM-0004","Try square (type 2)",120,1
+"Hand Tools & Measuring","HTM-0005","Try square (type 3)",150,3
+"Hand Tools & Measuring","HTM-0015","Wire brush",120,8
+"Household Fittings","HF-0006","Broom brush (Ksh 450 type)",450,10
+"Household Fittings","HF-0003","Door lock - type 1",600,5
+"Household Fittings","HF-0004","Door lock - type 2",850,3
+"Household Fittings","HF-0002","Double curtain rod - with lock",110,16
+"Household Fittings","HF-0001","Double curtain rod - without lock",100,39
+"Household Fittings","HF-0005","Mop head",350,3
+"Masonry & Hand Tools","MHT-0006","Broom brush (brush only)",250,3
+"Masonry & Hand Tools","MHT-0001","Stainless steel trowel",100,28
+"Masonry & Hand Tools","MHT-0004","Tin cutter - big",450,2
+"Masonry & Hand Tools","MHT-0005","Tin cutter - small",400,3
+"Masonry & Hand Tools","MHT-0002","Trowel - juakali",300,2
+"Masonry & Hand Tools","MHT-0003","Trowel - plastic handle",200,6
+"Motorcycle & Bicycle Parts","MBP-0009","Bearing",100,39
+"Motorcycle & Bicycle Parts","MBP-0003","Bicycle bell (Ksh 150 type)",150,4
+"Motorcycle & Bicycle Parts","MBP-0002","Bicycle bell (Ksh 200 type)",200,5
+"Motorcycle & Bicycle Parts","MBP-0008","Bike battery",1500,1
+"Motorcycle & Bicycle Parts","MBP-0001","Brake shoes",200,20
+"Motorcycle & Bicycle Parts","MBP-0005","Motorcycle chain",500,3
+"Motorcycle & Bicycle Parts","MBP-0011","Motorcycle flasher",100,8
+"Motorcycle & Bicycle Parts","MBP-0006","Patches",30,11
+"Motorcycle & Bicycle Parts","MBP-0007","Signal bulb",20,11
+"Motorcycle & Bicycle Parts","MBP-0010","Super tubes",280,10
+"Motorcycle & Bicycle Parts","MBP-0004","Turn signal",200,3
+"Painting Tools & Materials","PTM-0002","Paint brush 2 inch",70,19
+"Painting Tools & Materials","PTM-0007","Paint brush 25mm",40,4
+"Painting Tools & Materials","PTM-0004","Paint brush 3 inch",100,26
+"Painting Tools & Materials","PTM-0006","Paint brush 3/4 inch",40,1
+"Painting Tools & Materials","PTM-0003","Paint brush 4 inch",120,9
+"Painting Tools & Materials","PTM-0001","Paint brush 5 inch",150,27
+"Painting Tools & Materials","PTM-0005","Paint brush 6 inch",170,12
+"Painting Tools & Materials","PTM-0008","Paint roller",250,8
+"Painting Tools & Materials","PTM-0009","Thinner 1 litre (brand A)",300,6
+"Painting Tools & Materials","PTM-0010","Thinner 1 litre (brand B)",260,12
+"Painting Tools & Materials","PTM-0012","Turpentine 1 litre",400,3
+"Painting Tools & Materials","PTM-0011","Turpentine 500ml",220,4
+"Paints & Finishes","PNT-001","Wall Paint 4L",1800,5
+"Plumbing & Piping","PP-0039","Angle valve",300,17
+"Plumbing & Piping","PP-0021","Big bend 1 inch",50,8
+"Plumbing & Piping","PP-0011","Bottle trap 1 1/2 inch",180,12
+"Plumbing & Piping","PP-0002","Connection tubes",300,6
+"Plumbing & Piping","PP-0005","Contact pipe 100ml",250,4
+"Plumbing & Piping","PP-0028","Female adapter 3/4 by 1/2",70,6
+"Plumbing & Piping","PP-0032","Female adapter 3/4 by 3/4",70,11
+"Plumbing & Piping","PP-0030","Female elbow 3/4 by 1/2",60,59
+"Plumbing & Piping","PP-0033","Female tee 1/2 by 1/2",60,11
+"Plumbing & Piping","PP-0034","Female tee 3/4 by 1/2",60,15
+"Plumbing & Piping","PP-0025","Female tee 3/4 by 3/4",70,10
+"Plumbing & Piping","PP-0010","Flex tube metallic - long",250,12
+"Plumbing & Piping","PP-0009","Flex tube metallic - small",200,13
+"Plumbing & Piping","PP-0035","Flexible cable 1/2 by 30",80,7
+"Plumbing & Piping","PP-0012","Flexible magic connector",180,27
+"Plumbing & Piping","PP-0026","Male adapter",100,8
+"Plumbing & Piping","PP-0029","Male adapter 3/4 by 1/2",70,10
+"Plumbing & Piping","PP-0031","Male elbow 3/4 by 1/2",60,11
+"Plumbing & Piping","PP-0024","Male tee 1/2 by 1/2",60,56
+"Plumbing & Piping","PP-0027","Male-female tee 3/4 by 1/2",70,20
+"Plumbing & Piping","PP-0007","Piping 1 1/2 inch",150,18
+"Plumbing & Piping","PP-0006","Piping 1 1/4 inch",60,55
+"Plumbing & Piping","PP-0008","Piping 2 inch",100,12
+"Plumbing & Piping","PP-0013","Plug",100,11
+"Plumbing & Piping","PP-0015","Plug - medium",60,4
+"Plumbing & Piping","PP-0014","Plug - small",40,17
+"Plumbing & Piping","PP-0036","PPR elbow 3/4",30,8
+"Plumbing & Piping","PP-0038","PPR plain socket 3/4",40,15
+"Plumbing & Piping","PP-0037","PPR tee 3/4",40,49
+"Plumbing & Piping","PP-0003","PVC fitting and piping 100ml",280,11
+"Plumbing & Piping","PP-0004","PVC fitting and piping 50ml",200,10
+"Plumbing & Piping","PP-0019","PVC male connector 1/2 inch",40,15
+"Plumbing & Piping","PP-0018","PVC male connector 3/4 inch",40,17
+"Plumbing & Piping","PP-0023","PVC socket 1/2 inch",20,47
+"Plumbing & Piping","PP-0022","PVC socket 3/4 inch",30,10
+"Plumbing & Piping","PP-0017","Second pile 1/2 inch",30,32
+"Plumbing & Piping","PP-0016","Second pile 3/4 inch",30,38
+"Plumbing & Piping","PP-0040","Sink hole",100,12
+"Plumbing & Piping","PP-0020","T-pipe 1/2 inch",30,21
+"Plumbing & Piping","PP-0042","Thread seal tape - big",100,22
+"Plumbing & Piping","PP-0041","Thread seal tape - small",30,24
+"Plumbing & Piping","PP-0001","Waste gully trap",150,3
+"Ropes","R-0001","Rope (general)",100,11
+"Ropes","R-0008","Rope (many colors) 16ply",50,13
+"Ropes","R-0007","Rope (many colors) 42ply",70,19
+"Ropes","R-0003","Rope 10x10",250,3
+"Ropes","R-0006","Rope 6x10",110,7
+"Ropes","R-0005","Rope 7x10",130,1
+"Ropes","R-0002","Rope 8x10",180,4
+"Ropes","R-0004","Rope 9x10",220,3
+"Safety Equipment","SE-0001","Safety goggles",200,5
+"Screws & Fasteners","SF-0007","Flat screw",25,4
+"Screws & Fasteners","SF-0002","Gypsum screws 40mm (pack)",280,3
+"Screws & Fasteners","SF-0001","MDF screws 25mm (pack)",250,5
+"Screws & Fasteners","SF-0005","Star screw (Ksh 220 type)",220,1
+"Screws & Fasteners","SF-0006","Star screw (Ksh 70 type)",70,5
+"Screws & Fasteners","SF-0004","Wood screw 1.5 inch (packet)",180,4
+"Screws & Fasteners","SF-0003","Wood screw 3 inch (packet)",300,1
+"Tools & Equipment","HAM-001","Claw Hammer",750,50
+"Tools & Equipment","FRK001","fork Jembe",300,40
+"Window & Lock Fittings","WLF-0010","Bed nuts",50,19
+"Window & Lock Fittings","WLF-0011","Bed nuts - juakali",50,6
+"Window & Lock Fittings","WLF-0004","Lock bolt - juakali",70,14
+"Window & Lock Fittings","WLF-0003","Lock bolt - new",120,6
+"Window & Lock Fittings","WLF-0008","Lock bolt juakali (Ksh 100 type)",100,13
+"Window & Lock Fittings","WLF-0006","Lock bolt juakali (Ksh 120 type)",120,37
+"Window & Lock Fittings","WLF-0007","Lock bolt juakali (Ksh 210 type)",210,15
+"Window & Lock Fittings","WLF-0009","Lock bolt juakali (Ksh 50 type)",50,25
+"Window & Lock Fittings","WLF-0005","Tower bolt",80,22
+"Window & Lock Fittings","WLF-0002","Window fastener",120,56
+"Window & Lock Fittings","WLF-0001","Window stay",120,8

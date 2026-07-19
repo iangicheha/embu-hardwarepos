@@ -89,6 +89,24 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+// getProducts is paginated (100 rows per page). Fetching only page 1 hides
+// everything past the first 100 products — this loops until every page has
+// been collected so the POS screen always shows the full catalog.
+async function fetchAllProducts(): Promise<ApiProduct[]> {
+  const all: ApiProduct[] = [];
+  let page = 1;
+  const limit = 100;
+  while (true) {
+    const res = await getProducts(page, limit);
+    const items = (res.data?.products ?? []) as ApiProduct[];
+    all.push(...items);
+    const pagination = res.data?.pagination;
+    if (!pagination || page >= pagination.totalPages) break;
+    page++;
+  }
+  return all;
+}
+
 export default function POSPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -108,12 +126,11 @@ export default function POSPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const [productsRes, settingsRes] = await Promise.all([
-          getProducts(1, 100),
+        const [productsData, settingsRes] = await Promise.all([
+          fetchAllProducts(),
           getSettings()
         ]);
 
-        const productsData = (productsRes.data?.products ?? []) as ApiProduct[];
         setProducts(productsData);
 
         const uniqueCategories = Array.from(
