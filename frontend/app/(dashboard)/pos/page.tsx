@@ -393,11 +393,11 @@ export default function POSPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Card className="sticky top-20">
-            <CardHeader className="pb-3">
+          <Card className="sticky top-20 flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden">
+            <CardHeader className="pb-3 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-1 flex-col space-y-4 overflow-y-auto">
               <AnimatePresence>
                 {saleComplete && (
                   <motion.div
@@ -417,7 +417,7 @@ export default function POSPage() {
                   Cart is empty. Click a product to add.
                 </p>
               ) : (
-                <div className="max-h-64 space-y-2 overflow-y-auto">
+                <div className="max-h-40 space-y-2 overflow-y-auto">
                   {cart.map((item) => (
                     <div
                       key={item.product.id}
@@ -470,6 +470,7 @@ export default function POSPage() {
 
               <Separator />
 
+              <div className="shrink-0 space-y-4">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -536,6 +537,7 @@ export default function POSPage() {
                     Download PDF
                   </Button>
                 </div>
+              </div>
               </div>
             </CardContent>
           </Card>

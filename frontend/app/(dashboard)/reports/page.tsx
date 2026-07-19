@@ -19,6 +19,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -103,6 +111,41 @@ export default function ReportsPage() {
       ),
     [products]
   );
+
+  // What actually sold in the selected date range, aggregated per product —
+  // this is what a manager asks for: "what did we sell this month", not
+  // just the revenue total. Built from each order's line items.
+  const productsSold = useMemo(() => {
+    const byProduct = new Map<
+      string,
+      { name: string; code: string; qtySold: number; revenue: number }
+    >();
+
+    for (const order of periodOrders) {
+      for (const item of order.items ?? []) {
+        const product = item.product;
+        if (!product) continue;
+        const key = product.id ?? product.productCode ?? product.name;
+        const qty = toNumber(item.quantity);
+        const lineRevenue = toNumber(item.price ?? product.sellingPrice) * qty;
+
+        const existing = byProduct.get(key);
+        if (existing) {
+          existing.qtySold += qty;
+          existing.revenue += lineRevenue;
+        } else {
+          byProduct.set(key, {
+            name: product.name ?? "Unknown product",
+            code: product.productCode ?? "—",
+            qtySold: qty,
+            revenue: lineRevenue,
+          });
+        }
+      }
+    }
+
+    return Array.from(byProduct.values()).sort((a, b) => b.qtySold - a.qtySold);
+  }, [periodOrders]);
 
   async function handleExportCsv() {
     try {
@@ -260,6 +303,141 @@ export default function ReportsPage() {
         <TopProductsChart />
         <PaymentMethodChart />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Products Sold</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Every product sold between {dateFrom} and {dateTo}, aggregated across all orders in the period.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Code</TableHead>
+                <TableHead className="text-right">Qty Sold</TableHead>
+                <TableHead className="text-right">Revenue</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {productsSold.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-6">
+                    No products sold in this period.
+                  </TableCell>
+                </TableRow>
+              )}
+              {productsSold.map((p) => (
+                <TableRow key={p.code + p.name}>
+                  <TableCell className="font-medium text-sm">{p.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{p.code}</TableCell>
+                  <TableCell className="text-right">{p.qtySold}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(p.revenue)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Orders in Period</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Click an order to see exactly which products were sold in that sale.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <OrdersWithLineItems orders={periodOrders} />
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+// Expandable per-order table — click a row to reveal its line items (the
+// individual products + quantities that made up that specific sale).
+function OrdersWithLineItems({ orders }: { orders: any[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  if (orders.length === 0) {
+    return <p className="text-center text-sm text-muted-foreground py-6">No orders in this period.</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Order</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {orders.map((order) => {
+          const isExpanded = expandedId === order.id;
+          return (
+            <>
+              <TableRow
+                key={order.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setExpandedId(isExpanded ? null : order.id)}
+              >
+                <TableCell className="font-medium text-sm">{order.orderNumber}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  {formatCurrency(order.totalAmount)}
+                </TableCell>
+              </TableRow>
+              {isExpanded && (
+                <TableRow key={`${order.id}-items`}>
+                  <TableCell colSpan={3} className="bg-muted/30 p-0">
+                    <div className="p-3">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="h-8 text-xs">Product</TableHead>
+                            <TableHead className="h-8 text-xs text-right">Qty</TableHead>
+                            <TableHead className="h-8 text-xs text-right">Unit Price</TableHead>
+                            <TableHead className="h-8 text-xs text-right">Line Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(order.items ?? []).length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-3">
+                                No line item detail available for this order.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          {(order.items ?? []).map((item: any, idx: number) => {
+                            const unitPrice = toNumber(item.price ?? item.product?.sellingPrice);
+                            const qty = toNumber(item.quantity);
+                            return (
+                              <TableRow key={item.id ?? idx}>
+                                <TableCell className="text-sm">{item.product?.name ?? "Unknown product"}</TableCell>
+                                <TableCell className="text-right text-sm">{qty}</TableCell>
+                                <TableCell className="text-right text-sm">{formatCurrency(unitPrice)}</TableCell>
+                                <TableCell className="text-right text-sm font-medium">
+                                  {formatCurrency(unitPrice * qty)}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
