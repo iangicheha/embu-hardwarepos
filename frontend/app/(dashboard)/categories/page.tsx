@@ -159,21 +159,27 @@ export default function CategoriesPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const [categoriesRes, firstPage] = await Promise.all([
-          getCategories(1, 100),
-          getProducts(1, 100)
-        ]);
+        const PAGE_SIZE = 100;
+        const categoriesPromise = getCategories(1, 100);
+        const firstPage = await getProducts(1, PAGE_SIZE);
 
-        const total = firstPage.data.pagination?.total ?? firstPage.data.products.length;
-        // If there are more products than one page holds, fetch the rest so
-        // category counts reflect every product, not just the first 100.
-        const productsRes =
-          total > firstPage.data.products.length
-            ? await getProducts(1, total)
-            : firstPage;
+        const totalPages = firstPage.data.pagination?.totalPages ?? 1;
 
+        let allProducts = firstPage.data.products;
+        if (totalPages > 1) {
+          // Fetch remaining pages in parallel — the API caps `limit`, so we
+          // can't just ask for everything in one request.
+          const remainingPages = await Promise.all(
+            Array.from({ length: totalPages - 1 }, (_, i) => getProducts(i + 2, PAGE_SIZE))
+          );
+          allProducts = allProducts.concat(
+            ...remainingPages.map((res) => res.data.products)
+          );
+        }
+
+        const categoriesRes = await categoriesPromise;
         setCategories(categoriesRes.data.categories || []);
-        setProducts(productsRes.data.products || []);
+        setProducts(allProducts);
       } catch (err) {
         setError("Failed to load data");
         console.error(err);
