@@ -157,7 +157,7 @@ export default function POSPage() {
     (sum, item) => sum + toNumber(item.product.sellingPrice) * item.quantity,
     0
   );
-  const grandTotal = subtotal - discount; // tax already included
+  const grandTotal = subtotal - discount; // tax included
 
   function addToCart(product: ApiProduct) {
     setCart((prev) => {
@@ -365,10 +365,10 @@ export default function POSPage() {
           )}
         </div>
 
-        {/* Cart – right 2 columns, full height, sticky */}
+        {/* Cart – right 2 columns – increased height */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-20 flex h-[calc(100vh-6rem)] flex-col overflow-hidden">
-            <CardHeader className="py-3 px-4 shrink-0">
+          <Card className="sticky top-16 flex h-[calc(100vh-5rem)] flex-col overflow-hidden">
+            <CardHeader className="py-2 px-4 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
 
