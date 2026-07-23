@@ -174,8 +174,9 @@ export default function POSPage() {
     (sum, item) => sum + toNumber(item.product.sellingPrice) * item.quantity,
     0
   );
-  const tax = (subtotal - discount) * (taxRate / 100);
-  const grandTotal = subtotal - discount + tax;
+  // Tax is already included in the selling price, so we don't add it separately.
+  // Grand total = subtotal - discount
+  const grandTotal = subtotal - discount;
 
   function addToCart(product: ApiProduct) {
     setCart((prev) => {
@@ -397,7 +398,7 @@ export default function POSPage() {
             <CardHeader className="pb-3 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col space-y-4 overflow-y-auto">
+            <CardContent className="flex flex-1 flex-col space-y-4 overflow-y-auto p-4">
               <AnimatePresence>
                 {saleComplete && (
                   <motion.div
@@ -417,7 +418,8 @@ export default function POSPage() {
                   Cart is empty. Click a product to add.
                 </p>
               ) : (
-                <div className="max-h-40 space-y-2 overflow-y-auto">
+                // Cart items list – takes available space and scrolls independently
+                <div className="flex-1 overflow-y-auto space-y-2">
                   {cart.map((item) => (
                     <div
                       key={item.product.id}
@@ -470,74 +472,75 @@ export default function POSPage() {
 
               <Separator />
 
+              {/* Totals and payment – always at the bottom */}
               <div className="shrink-0 space-y-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Discount</span>
+                    <Input
+                      type="number"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      className="h-7 w-24 text-right"
+                      min={0}
+                    />
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Tax ({taxRate}% included)
+                    </span>
+                    <span>{formatCurrency(0)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-base font-bold">
+                    <span>Grand Total</span>
+                    <span className="text-primary">{formatCurrency(grandTotal)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Discount</span>
-                  <Input
-                    type="number"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                    className="h-7 w-24 text-right"
-                    min={0}
-                  />
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Tax ({taxRate}%)
-                  </span>
-                  <span>{formatCurrency(tax)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between text-base font-bold">
-                  <span>Grand Total</span>
-                  <span className="text-primary">{formatCurrency(grandTotal)}</span>
-                </div>
-              </div>
 
-              <div>
-                <p className="mb-2 text-sm font-medium">Payment Method</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {paymentMethods.map(({ method, icon: Icon, label }) => (
-                    <Button
-                      key={method}
-                      variant={paymentMethod === method ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setPaymentMethod(method)}
-                      className="justify-start gap-2"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {label}
+                <div>
+                  <p className="mb-2 text-sm font-medium">Payment Method</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {paymentMethods.map(({ method, icon: Icon, label }) => (
+                      <Button
+                        key={method}
+                        variant={paymentMethod === method ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPaymentMethod(method)}
+                        className="justify-start gap-2"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={completeSale}
+                    disabled={cart.length === 0 || submitting}
+                  >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Complete Sale
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handlePrintReceipt}>
+                      <Printer className="mr-1 h-4 w-4" />
+                      Print Receipt
                     </Button>
-                  ))}
+                    <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handleDownloadPdf}>
+                      <Download className="mr-1 h-4 w-4" />
+                      Download PDF
+                    </Button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={completeSale}
-                  disabled={cart.length === 0 || submitting}
-                >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Complete Sale
-                </Button>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handlePrintReceipt}>
-                    <Printer className="mr-1 h-4 w-4" />
-                    Print Receipt
-                  </Button>
-                  <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handleDownloadPdf}>
-                    <Download className="mr-1 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                </div>
-              </div>
               </div>
             </CardContent>
           </Card>
