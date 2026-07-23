@@ -115,20 +115,23 @@ class CategoriesService {
       include: { _count: { select: { products: true } } }
     });
     if (!category) throw new AppError("Category not found", 404);
-    if (category._count.products > 0) {
-      throw new AppError(
-        "Cannot delete category with linked products",
-        400
-      );
-    }
+
+    const linkedProducts = category._count.products;
 
     await prisma.$transaction(async (tx) => {
+      // Product.categoryId → Category is onDelete: SetNull, so this
+      // automatically un-categorizes any linked products rather than
+      // blocking the delete or corrupting anything — categories are just
+      // an organizational tag, not something order history depends on.
       await tx.category.delete({ where: { id } });
       await tx.auditLog.create({
         data: {
           userId,
           action: "CATEGORY_DELETED",
-          details: `Deleted category: ${category.name}`
+          details:
+            linkedProducts > 0
+              ? `Deleted category: ${category.name} (${linkedProducts} product(s) un-categorized)`
+              : `Deleted category: ${category.name}`
         }
       });
     });
