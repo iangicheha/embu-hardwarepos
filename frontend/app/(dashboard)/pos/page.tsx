@@ -398,14 +398,14 @@ export default function POSPage() {
             <CardHeader className="pb-3 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col space-y-4 overflow-y-auto p-4">
+            <CardContent className="flex flex-1 flex-col overflow-hidden p-4">
               <AnimatePresence>
                 {saleComplete && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 rounded-lg bg-success/10 p-3 text-success"
+                    className="flex items-center gap-2 rounded-lg bg-success/10 p-3 text-success shrink-0"
                   >
                     <CheckCircle className="h-5 w-5" />
                     <span className="text-sm font-medium">Sale completed successfully!</span>
@@ -418,8 +418,8 @@ export default function POSPage() {
                   Cart is empty. Click a product to add.
                 </p>
               ) : (
-                // Cart items list – takes available space and scrolls independently
-                <div className="flex-1 overflow-y-auto space-y-2">
+                // Cart items list – fills remaining space and scrolls
+                <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                   {cart.map((item) => (
                     <div
                       key={item.product.id}
@@ -456,7 +456,7 @@ export default function POSPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-danger"
+                          className="h-7 w-7 text-destructive"
                           onClick={() => removeFromCart(item.product.id)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -470,7 +470,7 @@ export default function POSPage() {
                 </div>
               )}
 
-              <Separator />
+              <Separator className="shrink-0 my-2" />
 
               {/* Totals and payment – always at the bottom */}
               <div className="shrink-0 space-y-4">
