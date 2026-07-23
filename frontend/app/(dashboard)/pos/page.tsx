@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -24,10 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, toNumber } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 
-// Backend Product shape — no `image`/`stock`/`status` fields, prices are Decimal
-// strings. `quantity` is the real stock count.
 interface ApiProduct {
   id: string;
   productCode: string;
@@ -44,7 +41,6 @@ interface CartItem {
   quantity: number;
 }
 
-// Backend enum values for PaymentMethod (must match Prisma + Zod schema)
 type PaymentMethod = "CASH" | "MPESA" | "BANK_TRANSFER" | "CREDIT";
 
 const paymentMethods: { method: PaymentMethod; icon: React.ElementType; label: string }[] = [
@@ -54,8 +50,6 @@ const paymentMethods: { method: PaymentMethod; icon: React.ElementType; label: s
   { method: "CREDIT", icon: CreditCard, label: "Credit" },
 ];
 
-// Neutral placeholder image (data URI) — avoids Next.js `src=undefined` warnings
-// and removes the dependency on a hard-coded Unsplash URL.
 const PLACEHOLDER_IMAGE =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
@@ -63,14 +57,6 @@ const PLACEHOLDER_IMAGE =
       '<rect width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14" fill="#9ca3af">No Image</text></svg>'
   );
 
-/**
- * Normalize an imageUrl from the API into something the browser can load.
- * - null/empty -> placeholder
- * - full URL (http/https) -> used as-is
- * - site-relative path that already starts with "/" -> used as-is
- * - bare filename like "hammer.png" -> prefixed with "/products/"
- *   (defensive: some older DB rows are missing the prefix)
- */
 function normalizeImageUrl(raw: string | null | undefined): string {
   if (!raw) return PLACEHOLDER_IMAGE;
   const url = raw.trim();
@@ -89,9 +75,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-// getProducts is paginated (100 rows per page). Fetching only page 1 hides
-// everything past the first 100 products — this loops until every page has
-// been collected so the POS screen always shows the full catalog.
 async function fetchAllProducts(): Promise<ApiProduct[]> {
   const all: ApiProduct[] = [];
   let page = 1;
@@ -121,6 +104,7 @@ export default function POSPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [taxRate, setTaxRate] = useState(16);
   const [error, setError] = useState<string | null>(null);
+  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -142,7 +126,6 @@ export default function POSPage() {
         );
         setCategories(uniqueCategories);
 
-        // Settings.taxRate is a Decimal string
         if (settingsRes.data?.taxRate !== undefined && settingsRes.data?.taxRate !== null) {
           setTaxRate(toNumber(settingsRes.data.taxRate));
         }
@@ -174,15 +157,13 @@ export default function POSPage() {
     (sum, item) => sum + toNumber(item.product.sellingPrice) * item.quantity,
     0
   );
-  // Tax is already included in the selling price, so we don't add it separately.
-  // Grand total = subtotal - discount
-  const grandTotal = subtotal - discount;
+  const grandTotal = subtotal - discount; // tax already included
 
   function addToCart(product: ApiProduct) {
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
-        if (existing.quantity >= product.quantity) return prev; // don't oversell
+        if (existing.quantity >= product.quantity) return prev;
         return prev.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -200,7 +181,7 @@ export default function POSPage() {
           if (item.product.id !== productId) return item;
           const newQty = item.quantity + delta;
           if (newQty <= 0) return null;
-          if (newQty > item.product.quantity) return item; // cap at real stock
+          if (newQty > item.product.quantity) return item;
           return { ...item, quantity: newQty };
         })
         .filter(Boolean) as CartItem[]
@@ -210,8 +191,6 @@ export default function POSPage() {
   function removeFromCart(productId: string) {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   }
-
-  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
   async function completeSale() {
     if (cart.length === 0) return;
@@ -234,7 +213,6 @@ export default function POSPage() {
       setCompletedOrderId(result.data.id);
 
       setSaleComplete(true);
-      // Optimistically decrement local stock so the UI reflects reality
       setProducts((prev) =>
         prev.map((p) => {
           const cartItem = cart.find((c) => c.product.id === p.id);
@@ -242,7 +220,6 @@ export default function POSPage() {
         })
       );
 
-      // Trigger dashboard refresh event for real-time updates
       window.dispatchEvent(new CustomEvent('dashboard-refresh'));
       setTimeout(() => {
         setCart([]);
@@ -320,6 +297,7 @@ export default function POSPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-5">
+        {/* Product list – left 3 columns */}
         <div className="space-y-4 lg:col-span-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -331,10 +309,7 @@ export default function POSPage() {
             />
           </div>
 
-          <Tabs
-            value={activeCategory}
-            onValueChange={setActiveCategory}
-          >
+          <Tabs value={activeCategory} onValueChange={setActiveCategory}>
             <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0">
               <TabsTrigger value="All" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 All
@@ -352,9 +327,7 @@ export default function POSPage() {
           </Tabs>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No products found
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No products found</div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredProducts.map((product) => (
@@ -368,7 +341,6 @@ export default function POSPage() {
                     onClick={() => addToCart(product)}
                   >
                     <div className="relative h-32 w-full bg-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={normalizeImageUrl(product.imageUrl)}
                         alt={product.name}
@@ -393,32 +365,35 @@ export default function POSPage() {
           )}
         </div>
 
+        {/* Cart – right 2 columns, full height, sticky */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-20 flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden">
-            <CardHeader className="pb-3 shrink-0">
+          <Card className="sticky top-20 flex h-[calc(100vh-6rem)] flex-col overflow-hidden">
+            <CardHeader className="py-3 px-4 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col overflow-hidden p-4">
+
+            <CardContent className="flex flex-1 flex-col overflow-hidden p-4 pt-0">
+              {/* Sale success notification */}
               <AnimatePresence>
                 {saleComplete && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 rounded-lg bg-success/10 p-3 text-success shrink-0"
+                    className="flex items-center gap-2 rounded-lg bg-success/10 p-2 text-success shrink-0 mb-2"
                   >
                     <CheckCircle className="h-5 w-5" />
-                    <span className="text-sm font-medium">Sale completed successfully!</span>
+                    <span className="text-sm font-medium">Sale completed!</span>
                   </motion.div>
                 )}
               </AnimatePresence>
 
+              {/* Cart items – scrollable, takes all remaining space */}
               {cart.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
+                <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
                   Cart is empty. Click a product to add.
-                </p>
+                </div>
               ) : (
-                // Cart items list – fills remaining space and scrolls
                 <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                   {cart.map((item) => (
                     <div
@@ -437,18 +412,18 @@ export default function POSPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-6 w-6"
                           onClick={() => updateQuantity(item.product.id, -1)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-6 text-center text-sm font-medium">
+                        <span className="w-5 text-center text-sm font-medium">
                           {item.quantity}
                         </span>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-6 w-6"
                           onClick={() => updateQuantity(item.product.id, 1)}
                         >
                           <Plus className="h-3 w-3" />
@@ -456,13 +431,13 @@ export default function POSPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-destructive"
+                          className="h-6 w-6 text-destructive"
                           onClick={() => removeFromCart(item.product.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
-                      <span className="text-sm font-medium w-20 text-right">
+                      <span className="text-sm font-medium w-16 text-right">
                         {formatCurrency(toNumber(item.product.sellingPrice) * item.quantity)}
                       </span>
                     </div>
@@ -470,11 +445,11 @@ export default function POSPage() {
                 </div>
               )}
 
-              <Separator className="shrink-0 my-2" />
+              <Separator className="my-2 shrink-0" />
 
-              {/* Totals and payment – always at the bottom */}
-              <div className="shrink-0 space-y-4">
-                <div className="space-y-2 text-sm">
+              {/* Totals and payment – compact, at bottom */}
+              <div className="shrink-0 space-y-3">
+                <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
@@ -485,14 +460,12 @@ export default function POSPage() {
                       type="number"
                       value={discount}
                       onChange={(e) => setDiscount(Number(e.target.value))}
-                      className="h-7 w-24 text-right"
+                      className="h-6 w-20 text-right text-sm"
                       min={0}
                     />
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Tax ({taxRate}% included)
-                    </span>
+                    <span className="text-muted-foreground">Tax ({taxRate}% included)</span>
                     <span>{formatCurrency(0)}</span>
                   </div>
                   <Separator />
@@ -503,41 +476,41 @@ export default function POSPage() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-sm font-medium">Payment Method</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <p className="mb-1 text-xs font-medium">Payment Method</p>
+                  <div className="grid grid-cols-2 gap-1">
                     {paymentMethods.map(({ method, icon: Icon, label }) => (
                       <Button
                         key={method}
                         variant={paymentMethod === method ? "default" : "outline"}
                         size="sm"
                         onClick={() => setPaymentMethod(method)}
-                        className="justify-start gap-2"
+                        className="justify-start gap-1 text-xs h-7"
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-3 w-3" />
                         {label}
                       </Button>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-1">
                   <Button
                     className="w-full"
-                    size="lg"
+                    size="sm"
                     onClick={completeSale}
                     disabled={cart.length === 0 || submitting}
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                     Complete Sale
                   </Button>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1">
                     <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handlePrintReceipt}>
-                      <Printer className="mr-1 h-4 w-4" />
-                      Print Receipt
+                      <Printer className="mr-1 h-3 w-3" />
+                      Print
                     </Button>
                     <Button variant="outline" size="sm" disabled={!completedOrderId} onClick={handleDownloadPdf}>
-                      <Download className="mr-1 h-4 w-4" />
-                      Download PDF
+                      <Download className="mr-1 h-3 w-3" />
+                      PDF
                     </Button>
                   </div>
                 </div>
