@@ -159,10 +159,18 @@ export default function CategoriesPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const [categoriesRes, productsRes] = await Promise.all([
+        const [categoriesRes, firstPage] = await Promise.all([
           getCategories(1, 100),
           getProducts(1, 100)
         ]);
+
+        const total = firstPage.data.pagination?.total ?? firstPage.data.products.length;
+        // If there are more products than one page holds, fetch the rest so
+        // category counts reflect every product, not just the first 100.
+        const productsRes =
+          total > firstPage.data.products.length
+            ? await getProducts(1, total)
+            : firstPage;
 
         setCategories(categoriesRes.data.categories || []);
         setProducts(productsRes.data.products || []);
@@ -239,8 +247,16 @@ export default function CategoriesPage() {
 
   const categoryStats = categories.map((cat) => {
     const catProducts = products.filter((p) => {
-      const catName = typeof p.category === 'string' ? p.category : p.category?.name;
-      return catName === cat.name;
+      // Prefer matching by ID — exact and unaffected by casing/whitespace.
+      if (p.categoryId) return p.categoryId === cat.id;
+      if (p.category && typeof p.category === "object" && p.category.id) {
+        return p.category.id === cat.id;
+      }
+      // Fall back to a normalized name comparison (handles Excel-imported
+      // products whose category name may differ in case/whitespace from
+      // the category record created separately).
+      const catName = typeof p.category === "string" ? p.category : p.category?.name;
+      return (catName ?? "").trim().toLowerCase() === (cat.name ?? "").trim().toLowerCase();
     });
     const totalStock = catProducts.reduce(
       (sum: number, p: any) => sum + toNumber(p.quantity),
