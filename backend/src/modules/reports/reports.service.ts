@@ -45,6 +45,16 @@ class ReportsService {
       createdAt: { gte: since }
     });
 
+    // For "previous period" comparisons we need a bounded window
+    // (start <= createdAt < end), not an open-ended gte — otherwise
+    // "yesterday" would include today's orders too, and "last week"
+    // would include this week's orders too, skewing every trend
+    // toward 0%/positive regardless of actual performance.
+    const boundedRevenueFilter = (start: Date, end: Date) => ({
+      ...completedOrdersFilter,
+      createdAt: { gte: start, lt: end }
+    });
+
     // lowStockCount uses raw SQL since Prisma can't compare two columns
     const lowStockCountResult = await prisma.$queryRaw<
       { count: bigint }[]
@@ -91,7 +101,7 @@ class ReportsService {
         _sum: { totalAmount: true }
       }),
       prisma.order.aggregate({
-        where: revenueFilter(yesterdayStart),
+        where: boundedRevenueFilter(yesterdayStart, startOfDay),
         _sum: { totalAmount: true }
       }),
       prisma.order.aggregate({
@@ -99,7 +109,7 @@ class ReportsService {
         _sum: { totalAmount: true }
       }),
       prisma.order.aggregate({
-        where: revenueFilter(lastWeekStart),
+        where: boundedRevenueFilter(lastWeekStart, weekStart),
         _sum: { totalAmount: true }
       }),
       prisma.order.aggregate({
