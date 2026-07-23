@@ -29,7 +29,8 @@ class InventoryController {
       await inventoryService.getProducts(
         Number(req.query.page || 1),
         Number(req.query.limit || 20),
-        req.query.search?.toString()
+        req.query.search?.toString(),
+        req.query.includeArchived === "true"
       );
 
     res.json({
@@ -85,15 +86,17 @@ class InventoryController {
     req: AuthenticatedRequest,
     res: Response
   ) {
-    await inventoryService.deleteProduct(
+    const result = await inventoryService.deleteProduct(
       getParam(req.params.id),
       req.user!.userId
     );
 
     res.json({
       success: true,
-      message:
-        "Product deleted successfully"
+      message: result.archived
+        ? "Product has existing orders, so it was archived instead of deleted"
+        : "Product deleted successfully",
+      data: result
     });
   }
 }

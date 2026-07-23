@@ -75,27 +75,35 @@ class InventoryService {
     return product;
   }
 
-  async getProducts(page: number, limit: number, search?: string) {
+  async getProducts(
+    page: number,
+    limit: number,
+    search?: string,
+    includeArchived = false
+  ) {
     const { skip, take } = getPagination(page, limit);
 
-    const where: Prisma.ProductWhereInput = search
-      ? {
-          OR: [
-            {
-              name: {
-                contains: search,
-                mode: Prisma.QueryMode.insensitive
+    const where: Prisma.ProductWhereInput = {
+      ...(includeArchived ? {} : { isArchived: false }),
+      ...(search
+        ? {
+            OR: [
+              {
+                name: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive
+                }
+              },
+              {
+                productCode: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive
+                }
               }
-            },
-            {
-              productCode: {
-                contains: search,
-                mode: Prisma.QueryMode.insensitive
-              }
-            }
-          ]
-        }
-      : {};
+            ]
+          }
+        : {})
+    };
 
     const [products, total] = await prisma.$transaction([
       prisma.product.findMany({
@@ -197,11 +205,31 @@ class InventoryService {
       include: { _count: { select: { orderItems: true } } }
     });
     if (!exists) throw new AppError("Product not found", 404);
+
+    // Products with order history can't be hard-deleted without corrupting
+    // past receipts/reports (OrderItem.productId has no cascade/setNull).
+    // Archive them instead: they disappear from the active catalogue but
+    // stay intact for historical orders.
     if (exists._count.orderItems > 0) {
-      throw new AppError(
-        "Cannot delete product linked to existing orders",
-        400
-      );
+      if (exists.isArchived) {
+        throw new AppError("Product is already archived", 400);
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.product.update({
+          where: { id },
+          data: { isArchived: true }
+        });
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: "PRODUCT_ARCHIVED",
+            details: `Archived product ${exists.name} (has existing orders)`
+          }
+        });
+      });
+
+      return { archived: true as const };
     }
 
     await prisma.$transaction(async (tx) => {
@@ -215,7 +243,7 @@ class InventoryService {
       });
     });
 
-    return true;
+    return { archived: false as const };
   }
 
   async lowStockProducts() {
@@ -225,6 +253,7 @@ class InventoryService {
     // thousand SKUs. For larger catalogues, add an isLowStock boolean column
     // maintained in updateProduct/createProduct (see schema migration).
     const all = await prisma.product.findMany({
+      where: { isArchived: false },
       orderBy: { quantity: "asc" },
       include: productInclude
     });

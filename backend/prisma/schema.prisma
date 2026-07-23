@@ -138,6 +138,8 @@ model Product {
 
   reorderLevel    Int       @default(10)
 
+  isArchived      Boolean   @default(false)
+
   imageUrl        String?
 
   categoryId      String?
