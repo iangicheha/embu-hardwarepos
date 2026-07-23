@@ -240,6 +240,7 @@ export default function ProductsPage() {
     }
   }
 
+  // FIXED: Improved error handling for delete
   async function handleDeleteProduct() {
     if (!deleteTarget) return;
     try {
@@ -249,7 +250,10 @@ export default function ProductsPage() {
       setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch (err: any) {
-      setError(err.message || "Failed to delete product");
+      console.error("Delete error:", err);
+      // Use the server's message if available, otherwise a generic fallback
+      const message = err.message || "Failed to delete product";
+      setError(message);
     } finally {
       setDeleting(false);
     }
