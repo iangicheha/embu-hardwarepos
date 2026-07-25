@@ -21,6 +21,15 @@ class SettingsController {
       successResponse(res, data, "Settings updated");
     }
   );
+
+  resetAnalyticsData = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const result = await settingsService.resetAnalyticsData(
+        req.user!.userId
+      );
+      successResponse(res, result, "Analytics data reset successfully");
+    }
+  );
 }
 
 export default new SettingsController();

@@ -22,4 +22,10 @@ router.put(
   settingsController.updateSettings
 );
 
+router.post(
+  "/reset-analytics",
+  authorize(["admin"]),
+  settingsController.resetAnalyticsData
+);
+
 export default router;
