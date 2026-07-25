@@ -516,7 +516,7 @@ export default function ProductsPage() {
                         input.type = "file";
                         input.accept = "image/*";
                         input.onchange = async (e) => {
-                          const file = e.target.files?.[0];
+                          const file = (e.target as HTMLInputElement).files?.[0];
                           if (!file) return;
                           try {
                             const url = await uploadImage(file);
