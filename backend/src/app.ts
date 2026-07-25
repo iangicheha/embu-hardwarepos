@@ -20,7 +20,11 @@ import { logger } from "./config/logger";
 const app = express();
 
 app.set("trust proxy", 1);
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  })
+);
 app.use(compression());
 const allowedOrigins = env.FRONTEND_URL.split(",").map((url) => url.trim());
 
