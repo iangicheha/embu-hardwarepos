@@ -584,7 +584,7 @@ export async function markNotificationAsRead(id: string) {
 export async function deleteNotification(id: string) {
   return request<{ data: null }>(`/notifications/${id}`, {
     method: "DELETE"
-  );
+  });
 }
 
 // --- Printers ---
