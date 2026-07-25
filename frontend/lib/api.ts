@@ -640,7 +640,7 @@ export async function updatePrinter(
 export async function deletePrinter(id: string) {
   return request<{ data: null }>(`/printers/${id}`, {
     method: "DELETE"
-  );
+  });
 }
 
 export async function setDefaultPrinter(id: string) {
