@@ -378,3 +378,20 @@ model Branch {
 
   @@map("branches")
 }
+
+//
+// IMAGES
+//
+// Stores uploaded images as bytes directly in Postgres, so they survive
+// backend restarts/redeploys instead of living on ephemeral disk storage.
+
+model Image {
+  id          String    @id @default(uuid())
+
+  data        Bytes
+  mimeType    String
+
+  createdAt   DateTime  @default(now())
+
+  @@map("images")
+}

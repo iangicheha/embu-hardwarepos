@@ -8,7 +8,7 @@ import {
 import { authenticate } from "../../middleware/auth.middleware";
 import { authorize } from "../../middleware/role.middleware";
 import { validate, validateQuery } from "../../middleware/validation.middleware";
-import path from "path";
+import prisma from "../../database/prisma";
 
 const multer = require("multer");
 
@@ -44,33 +44,37 @@ router.delete(
   inventoryController.deleteProduct
 );
 
-// Image upload route
-const storage = multer.diskStorage({
-  destination: (_req: Request, _file: any, cb: (error: Error | null, destination: string) => void) => {
-    const uploadsPath = path.resolve(__dirname, "../../../uploads");
-    cb(null, uploadsPath);
-  },
-  filename: (_req: Request, file: any, cb: (error: Error | null, filename: string) => void) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.originalname);
-    const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
-    cb(null, filename);
-  }
+// Image upload route — stores the file bytes in Postgres (via the Image
+// model) instead of local disk, so uploads survive backend restarts/redeploys
+// on hosts with ephemeral filesystems (e.g. Render's free tier).
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB, matches app.ts body limits
 });
-
-const upload = multer({ storage: storage });
 
 router.post(
   "/upload-image",
   authorize(["admin"]),
   upload.single("image"),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const file = (req as any).file;
     if (!file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
-    const url = `${req.protocol}://${req.get("host")}/uploads/${file.filename}`;
-    res.json({ success: true, data: { url } });
+
+    try {
+      const image = await prisma.image.create({
+        data: {
+          data: file.buffer,
+          mimeType: file.mimetype
+        }
+      });
+
+      const url = `${req.protocol}://${req.get("host")}/api/images/${image.id}`;
+      res.json({ success: true, data: { url } });
+    } catch (err) {
+      res.status(500).json({ success: false, message: "Failed to save image" });
+    }
   }
 );
 
