@@ -13,6 +13,7 @@ import settingsRoutes from "../modules/settings/settings.routes";
 import auditRoutes from "../modules/audit/audit.routes";
 import notificationsRoutes from "../modules/notifications/notifications.routes";
 import printersRoutes from "../modules/printers/printers.routes";
+import imagesRoutes from "../modules/images/images.routes";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -58,5 +59,6 @@ router.use("/settings", settingsRoutes);
 router.use("/audit", auditRoutes);
 router.use("/notifications", notificationsRoutes);
 router.use("/printers", printersRoutes);
+router.use("/images", imagesRoutes);
 
 export default router;
