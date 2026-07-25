@@ -19,4 +19,4 @@ dev.log
 __pycache__/
 
 # misc
-.DS_Store
+.DS_Storefrontend/image/

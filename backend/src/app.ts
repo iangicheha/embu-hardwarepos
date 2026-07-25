@@ -4,6 +4,8 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import swaggerUi from "swagger-ui-express";
+import fs from "fs";
+import path from "path";
 
 import routes from "./routes/index";
 import {
@@ -43,6 +45,11 @@ app.use(
 app.use(cookieParser());
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
+
+const uploadsPath = path.join(__dirname, "..", "uploads");
+fs.mkdirSync(uploadsPath, { recursive: true });
+app.use("/uploads", express.static(uploadsPath));
+
 app.use(apiLimiter);
 
 if (env.IS_PROD) {

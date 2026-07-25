@@ -584,7 +584,7 @@ export async function markNotificationAsRead(id: string) {
 export async function deleteNotification(id: string) {
   return request<{ data: null }>(`/notifications/${id}`, {
     method: "DELETE"
-  });
+  );
 }
 
 // --- Printers ---
@@ -640,7 +640,7 @@ export async function updatePrinter(
 export async function deletePrinter(id: string) {
   return request<{ data: null }>(`/printers/${id}`, {
     method: "DELETE"
-  });
+  );
 }
 
 export async function setDefaultPrinter(id: string) {
@@ -850,3 +850,20 @@ export type Printer = {
   createdAt: string;
   updatedAt: string;
 };
+
+export async function uploadImage(file: File): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append("image", file);
+  const token = getAccessToken();
+  const response = await fetch(`${API_BASE_URL}/inventory/upload-image`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message ?? "Failed to upload image");
+  }
+  const data = await response.json();
+  return { url: data.data.url };
+}

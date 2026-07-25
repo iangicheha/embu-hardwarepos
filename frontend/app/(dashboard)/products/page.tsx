@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Search, FileSpreadsheet, FileText, MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react";
-import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, getSuppliers } from "@/lib/api";
+import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, getSuppliers, uploadImage } from "@/lib/api";
 import type { Product, ProductStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -507,6 +507,35 @@ export default function ProductsPage() {
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
                   />
+                  <div className="mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.onchange = async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const url = await uploadImage(file);
+                            setFormData({...formData, imageUrl: url});
+                          } catch (err) {
+                            console.error("Upload failed", err);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      Upload Image
+                    </Button>
+                  </div>
+                  {formData.imageUrl && (
+                    <div className="mt-2">
+                      <img src={formData.imageUrl} alt="Preview" className="max-w-[200px] max-h-[200px] object-contain rounded" />
+                    </div>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label>Supplier</Label>

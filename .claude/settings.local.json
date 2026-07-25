@@ -38,7 +38,8 @@
       "Bash(cd *)",
       "Bash(NEXT_PUBLIC_API_URL=\"https://hardwareembu.onrender.com/api\" SEED_ADMIN_EMAIL=\"admin\" SEED_ADMIN_PASSWORD=\"Admin@123\" npx tsx seed-product-images.ts)",
       "Bash(git check-ignore *)",
-      "Bash(echo \"---exit $?---\")"
+      "Bash(echo \"---exit $?---\")",
+      "Bash(npm install *)"
     ]
   }
 }
