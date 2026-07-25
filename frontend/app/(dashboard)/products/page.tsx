@@ -501,7 +501,7 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Image URL</Label>
+                  <Label>Product Image</Label>
                   <Input
                     placeholder="https://example.com/image.jpg"
                     value={formData.imageUrl}
@@ -509,6 +509,7 @@ export default function ProductsPage() {
                   />
                   <div className="mt-2">
                     <Button
+                      type="button"
                       variant="outline"
                       size="sm"
                       onClick={async () => {
@@ -528,12 +529,16 @@ export default function ProductsPage() {
                         input.click();
                       }}
                     >
-                      Upload Image
+                      Upload from computer
                     </Button>
                   </div>
                   {formData.imageUrl && (
-                    <div className="mt-2">
-                      <img src={formData.imageUrl} alt="Preview" className="max-w-[200px] max-h-[200px] object-contain rounded" />
+                    <div className="mt-2 w-[200px] h-[200px] flex items-center justify-center border rounded bg-muted/30 overflow-hidden">
+                      <img
+                        src={formData.imageUrl}
+                        alt="Preview"
+                        className="max-w-full max-h-full object-contain"
+                      />
                     </div>
                   )}
                 </div>
@@ -664,6 +669,7 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-14"></TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>Category</TableHead>
@@ -680,6 +686,19 @@ export default function ProductsPage() {
                 const status = deriveStatus(product.quantity, product.reorderLevel);
                 return (
                   <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="w-10 h-10 flex items-center justify-center border rounded bg-muted/30 overflow-hidden">
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">N/A</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <span className="font-medium">{product.name}</span>
                     </TableCell>
@@ -812,12 +831,46 @@ export default function ProductsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label>Image URL</Label>
+              <Label>Product Image</Label>
               <Input
                 placeholder="https://example.com/image.jpg"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               />
+              <div className="mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      try {
+                        const { url } = await uploadImage(file);
+                        setFormData({ ...formData, imageUrl: url });
+                      } catch (err) {
+                        console.error("Upload failed", err);
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  Upload from computer
+                </Button>
+              </div>
+              {formData.imageUrl && (
+                <div className="mt-2 w-[200px] h-[200px] flex items-center justify-center border rounded bg-muted/30 overflow-hidden">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Preview"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Supplier</Label>
