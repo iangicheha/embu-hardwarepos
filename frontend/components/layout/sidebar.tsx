@@ -82,29 +82,52 @@ export function Sidebar({ collapsed = false, onToggle, onNavigate }: SidebarProp
         collapsed ? "w-[72px]" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
-          <Wrench className="h-5 w-5" />
+      {/*
+        Collapsed state: 72px width can't fit logo + gap + toggle button in
+        one row (36 + 12 + 32 = 80px content alone, before padding), which
+        was pushing the toggle button outside the sidebar's clickable area
+        and making it impossible to expand back. Stack vertically instead
+        when collapsed so everything stays within bounds and reachable.
+      */}
+      {collapsed ? (
+        <div className="flex flex-col items-center gap-2 border-b border-sidebar-border px-2 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
+            <Wrench className="h-5 w-5" />
+          </div>
+          {onToggle && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggle}
+              className="h-8 w-8 shrink-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-        {!collapsed && (
+      ) : (
+        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
+            <Wrench className="h-5 w-5" />
+          </div>
           <div className="flex flex-col overflow-hidden">
             <span className="truncate text-sm font-bold text-sidebar-foreground">
               {businessName}
             </span>
             <span className="truncate text-xs text-muted-foreground">ERP System</span>
           </div>
-        )}
-        {onToggle && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            className={cn("ml-auto h-8 w-8 shrink-0", collapsed && "ml-0")}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        )}
-      </div>
+          {onToggle && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggle}
+              className="ml-auto h-8 w-8 shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 scrollbar-thin">
         {visibleMenuItems.map((item) => (
