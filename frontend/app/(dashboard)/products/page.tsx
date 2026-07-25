@@ -519,7 +519,7 @@ export default function ProductsPage() {
                           const file = (e.target as HTMLInputElement).files?.[0];
                           if (!file) return;
                           try {
-                            const url = await uploadImage(file);
+                            const { url } = await uploadImage(file);
                             setFormData({...formData, imageUrl: url});
                           } catch (err) {
                             console.error("Upload failed", err);
