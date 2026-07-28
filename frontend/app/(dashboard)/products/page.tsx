@@ -76,9 +76,7 @@ interface ApiProduct {
   reorderLevel: string | number;
   sellingUnits: ApiProductUnit[]; // the ways this product can be sold
   imageUrl?: string | null;
-  categoryId: string | null;
   category?: { id: string; name: string } | null;
-  supplierId: string | null;
   supplier?: { id: string; supplierName: string } | null;
 }
 
@@ -240,8 +238,8 @@ export default function ProductsPage() {
       productCode: product.productCode,
       description: product.description ?? "",
       imageUrl: product.imageUrl ?? "",
-      categoryId: product.categoryId ?? "",
-      supplierId: product.supplierId ?? "",
+      categoryId: product.category?.id ?? "",
+      supplierId: product.supplier?.id ?? "",
       buyingPrice: String(toNumber(product.buyingPrice)),
       quantity: String(toNumber(product.quantity)),
       baseUnit: product.baseUnit || "pcs",
