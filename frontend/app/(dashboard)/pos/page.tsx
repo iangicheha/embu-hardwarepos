@@ -141,7 +141,7 @@ export default function POSPage() {
       const categoryName = p.category?.name;
       const matchesCategory =
         activeCategory === "All" || categoryName === activeCategory;
-      return matchesSearch && matchesCategory && p.quantity > 0;
+      return matchesSearch && matchesCategory;
     });
   }, [debouncedSearch, activeCategory, products]);
 
@@ -165,12 +165,16 @@ export default function POSPage() {
   }
 
   function addToCart(product: ApiProduct, unit: ProductUnit) {
+    const existing = cart.find(
+      (item) => item.product.id === product.id && item.unit.id === unit.id
+    );
+    const maxQty = stockAvailableFor(product, unit, existing?.quantity ?? 0);
+    if (maxQty <= 0) {
+      setError(`${product.name} is out of stock (0 ${product.baseUnit} available)`);
+      return;
+    }
+    setError(null);
     setCart((prev) => {
-      const existing = prev.find(
-        (item) => item.product.id === product.id && item.unit.id === unit.id
-      );
-      const maxQty = stockAvailableFor(product, unit, existing?.quantity ?? 0);
-      if (maxQty <= 0) return prev;
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id && item.unit.id === unit.id
@@ -353,15 +357,22 @@ export default function POSPage() {
               {filteredProducts.map((product) => {
                 const units = product.sellingUnits ?? [];
                 const hasSingleUnit = units.length === 1;
+                const outOfStock = toNumber(product.quantity) <= 0;
                 return (
                   <motion.div
                     key={product.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={outOfStock ? undefined : { scale: 1.02 }}
+                    whileTap={outOfStock ? undefined : { scale: 0.98 }}
                   >
                     <Card
-                      className="cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
-                      onClick={() => hasSingleUnit && addToCart(product, units[0])}
+                      className={
+                        outOfStock
+                          ? "overflow-hidden opacity-50 grayscale cursor-not-allowed"
+                          : "cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
+                      }
+                      onClick={() =>
+                        !outOfStock && hasSingleUnit && addToCart(product, units[0])
+                      }
                     >
                       <div className="relative h-32 w-full bg-muted">
                         <img
@@ -373,11 +384,17 @@ export default function POSPage() {
                       <CardContent className="p-3">
                         <p className="truncate text-sm font-medium">{product.name}</p>
                         <div className="mt-1 flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            {toNumber(product.quantity)} {product.baseUnit} in stock
+                          <span className={outOfStock ? "text-xs font-medium text-destructive" : "text-xs text-muted-foreground"}>
+                            {outOfStock
+                              ? "Out of stock"
+                              : `${toNumber(product.quantity)} ${product.baseUnit} in stock`}
                           </span>
                         </div>
-                        {hasSingleUnit ? (
+                        {units.length === 0 ? (
+                          <div className="mt-2 text-xs font-medium text-destructive">
+                            No price set — edit this product
+                          </div>
+                        ) : hasSingleUnit ? (
                           <div className="mt-2 text-sm font-bold text-primary">
                             {formatCurrency(units[0]?.sellingPrice ?? 0)} / {units[0]?.unit}
                           </div>
@@ -387,11 +404,12 @@ export default function POSPage() {
                               <button
                                 key={u.id}
                                 type="button"
+                                disabled={outOfStock}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   addToCart(product, u);
                                 }}
-                                className="rounded-md border px-2 py-1 text-xs hover:bg-primary hover:text-white transition-colors"
+                                className="rounded-md border px-2 py-1 text-xs hover:bg-primary hover:text-white transition-colors disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit"
                               >
                                 {u.unit} · {formatCurrency(u.sellingPrice)}
                               </button>
