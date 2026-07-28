@@ -241,7 +241,8 @@ export async function getOrder(id: string) {
 export async function createOrder(data: {
   items: Array<{
     productId: string;
-    quantity: number;
+    productUnitId: string; // which selling unit was chosen, e.g. "kg" vs "bag"
+    quantity: number;      // quantity in that unit, e.g. 15 for "15 kg"
     unitPrice: number;
   }>;
   customerName?: string;
@@ -810,10 +811,12 @@ export type Order = {
   items: Array<{
     id: string;
     productId: string;
+    productUnitId: string | null;
     quantity: number;
     unitPrice: number;
     total: number;
     product: { id: string; name: string; productCode: string };
+    productUnit?: { id: string; unit: string; conversionToBase: number } | null;
   }>;
   subtotal: number;
   discount: number;

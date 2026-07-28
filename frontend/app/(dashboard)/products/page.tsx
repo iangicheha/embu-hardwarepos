@@ -48,18 +48,33 @@ const statusVariant: Record<ProductStatus, "success" | "warning" | "danger"> = {
 
 const ITEMS_PER_PAGE = 8;
 
+// A blank row for the "selling units" list in the product form — free text,
+// since new products may be sold by units we haven't seen yet (bag, kg,
+// litre, roll, metre, pcs, ...). Nothing here is hardcoded to a fixed list.
+function emptySellingUnit() {
+  return { unit: "", conversionToBase: "1", sellingPrice: "" };
+}
+
 // Backend Prisma `Product` has no `image`/`stock`/`status`/`code`/`supplierName`
 // fields — those are derived or renamed in the UI. This shape mirrors what
 // `getProducts` actually returns from the inventory module.
+interface ApiProductUnit {
+  id?: string;
+  unit: string;             // e.g. "bag", "kg", "pcs" — free text, not hardcoded
+  conversionToBase: string | number; // how many baseUnit this equals
+  sellingPrice: string | number;
+}
+
 interface ApiProduct {
   id: string;
   productCode: string;
   name: string;
   description: string | null;
   buyingPrice: string | number;   // Prisma Decimal serialises as a string
-  sellingPrice: string | number;
-  quantity: number;
-  reorderLevel: number;
+  quantity: string | number;      // in baseUnit
+  baseUnit: string;                // what `quantity`/`reorderLevel` are counted in
+  reorderLevel: string | number;
+  sellingUnits: ApiProductUnit[]; // the ways this product can be sold
   imageUrl?: string | null;
   categoryId: string | null;
   category?: { id: string; name: string } | null;
@@ -119,9 +134,10 @@ export default function ProductsPage() {
     categoryId: "",
     supplierId: "",
     buyingPrice: "",
-    sellingPrice: "",
     quantity: "",
-    reorderLevel: ""
+    baseUnit: "pcs",
+    reorderLevel: "",
+    sellingUnits: [emptySellingUnit()]
   });
 
   const EMPTY_FORM = {
@@ -132,10 +148,30 @@ export default function ProductsPage() {
     categoryId: "",
     supplierId: "",
     buyingPrice: "",
-    sellingPrice: "",
     quantity: "",
-    reorderLevel: ""
+    baseUnit: "pcs",
+    reorderLevel: "",
+    sellingUnits: [emptySellingUnit()]
   };
+
+  function addSellingUnitRow() {
+    setFormData((f) => ({ ...f, sellingUnits: [...f.sellingUnits, emptySellingUnit()] }));
+  }
+  function removeSellingUnitRow(index: number) {
+    setFormData((f) => ({ ...f, sellingUnits: f.sellingUnits.filter((_, i) => i !== index) }));
+  }
+  function updateSellingUnitRow(index: number, field: "unit" | "conversionToBase" | "sellingPrice", value: string) {
+    setFormData((f) => ({
+      ...f,
+      sellingUnits: f.sellingUnits.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
+    }));
+  }
+
+  // First configured selling unit's price — used for the products table and
+  // exports where we just need "a" price to show, not the full unit list.
+  function primaryPrice(p: ApiProduct): number {
+    return p.sellingUnits?.length ? toNumber(p.sellingUnits[0].sellingPrice) : 0;
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -173,9 +209,16 @@ export default function ProductsPage() {
         categoryId: formData.categoryId || undefined,
         supplierId: formData.supplierId || undefined,
         buyingPrice: Number(formData.buyingPrice),
-        sellingPrice: Number(formData.sellingPrice),
         quantity: Number(formData.quantity),
-        reorderLevel: Number(formData.reorderLevel)
+        baseUnit: formData.baseUnit,
+        reorderLevel: Number(formData.reorderLevel),
+        sellingUnits: formData.sellingUnits
+          .filter((u) => u.unit.trim() && u.sellingPrice !== "")
+          .map((u) => ({
+            unit: u.unit.trim(),
+            conversionToBase: Number(u.conversionToBase) || 1,
+            sellingPrice: Number(u.sellingPrice),
+          })),
       };
 
       await createProduct(productData);
@@ -200,9 +243,16 @@ export default function ProductsPage() {
       categoryId: product.categoryId ?? "",
       supplierId: product.supplierId ?? "",
       buyingPrice: String(toNumber(product.buyingPrice)),
-      sellingPrice: String(toNumber(product.sellingPrice)),
-      quantity: String(product.quantity),
-      reorderLevel: String(product.reorderLevel)
+      quantity: String(toNumber(product.quantity)),
+      baseUnit: product.baseUnit || "pcs",
+      reorderLevel: String(toNumber(product.reorderLevel)),
+      sellingUnits: product.sellingUnits?.length
+        ? product.sellingUnits.map((u) => ({
+            unit: u.unit,
+            conversionToBase: String(toNumber(u.conversionToBase)),
+            sellingPrice: String(toNumber(u.sellingPrice)),
+          }))
+        : [emptySellingUnit()],
     });
   }
 
@@ -225,9 +275,16 @@ export default function ProductsPage() {
         categoryId: formData.categoryId || undefined,
         supplierId: formData.supplierId || undefined,
         buyingPrice: Number(formData.buyingPrice),
-        sellingPrice: Number(formData.sellingPrice),
         quantity: Number(formData.quantity),
-        reorderLevel: Number(formData.reorderLevel)
+        baseUnit: formData.baseUnit,
+        reorderLevel: Number(formData.reorderLevel),
+        sellingUnits: formData.sellingUnits
+          .filter((u) => u.unit.trim() && u.sellingPrice !== "")
+          .map((u) => ({
+            unit: u.unit.trim(),
+            conversionToBase: Number(u.conversionToBase) || 1,
+            sellingPrice: Number(u.sellingPrice),
+          })),
       };
 
       await updateProduct(editTarget.id, productData);
@@ -271,10 +328,10 @@ export default function ProductsPage() {
         "Category": p.category?.name ?? "Uncategorized",
         "Supplier": p.supplier?.supplierName ?? "—",
         "Buying Price (KES)": toNumber(p.buyingPrice),
-        "Selling Price (KES)": toNumber(p.sellingPrice),
-        "Stock": p.quantity,
+        "Selling Price (KES)": primaryPrice(p),
+        "Stock": `${toNumber(p.quantity)} ${p.baseUnit}`,
         "Reorder Level": p.reorderLevel,
-        "Status": deriveStatus(p.quantity, p.reorderLevel),
+        "Status": deriveStatus(toNumber(p.quantity), toNumber(p.reorderLevel)),
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -322,7 +379,7 @@ export default function ProductsPage() {
       doc.text(`Generated ${generatedOn}  •  ${filtered.length} products`, 32, 46);
 
       const totalStockValue = filtered.reduce(
-        (sum, p) => sum + p.quantity * toNumber(p.sellingPrice),
+        (sum, p) => sum + toNumber(p.quantity) * primaryPrice(p),
         0
       );
 
@@ -335,9 +392,9 @@ export default function ProductsPage() {
           p.category?.name ?? "Uncategorized",
           p.supplier?.supplierName ?? "—",
           formatCurrency(toNumber(p.buyingPrice)),
-          formatCurrency(toNumber(p.sellingPrice)),
-          String(p.quantity),
-          deriveStatus(p.quantity, p.reorderLevel),
+          formatCurrency(primaryPrice(p)),
+          `${toNumber(p.quantity)} ${p.baseUnit}`,
+          deriveStatus(toNumber(p.quantity), toNumber(p.reorderLevel)),
         ]),
         styles: { fontSize: 8, cellPadding: 5 },
         headStyles: { fillColor: [30, 30, 30], textColor: 255, fontStyle: "bold" },
@@ -399,7 +456,7 @@ export default function ProductsPage() {
     const categoryName = p.category?.name ?? "Uncategorized";
     const matchesCategory = categoryFilter === "all" || categoryName === categoryFilter;
 
-    const status = deriveStatus(p.quantity, p.reorderLevel);
+    const status = deriveStatus(toNumber(p.quantity), toNumber(p.reorderLevel));
     const matchesStatus = statusFilter === "all" || status === statusFilter;
 
     return matchesSearch && matchesCategory && matchesStatus;
@@ -568,18 +625,17 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label>Selling Price (KES)</Label>
+                    <Label>Base Unit (stock is counted in this)</Label>
                     <Input
-                      type="number"
-                      placeholder="0"
-                      value={formData.sellingPrice}
-                      onChange={(e) => setFormData({...formData, sellingPrice: e.target.value})}
+                      placeholder="e.g. pcs, kg, litre"
+                      value={formData.baseUnit}
+                      onChange={(e) => setFormData({...formData, baseUnit: e.target.value})}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label>Quantity</Label>
+                    <Label>Quantity in stock (in base unit)</Label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -588,7 +644,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label>Reorder Level</Label>
+                    <Label>Reorder Level (in base unit)</Label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -596,6 +652,57 @@ export default function ProductsPage() {
                       onChange={(e) => setFormData({...formData, reorderLevel: e.target.value})}
                     />
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Ways this is sold</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={addSellingUnitRow}>
+                      <Plus className="mr-1 h-3 w-3" /> Add unit
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    e.g. cement: &ldquo;bag&rdquo; = 50 {formData.baseUnit || "base units"} at 850, and &ldquo;kg&rdquo; = 1 at 25 —
+                    both sell from the same stock.
+                  </p>
+                  {formData.sellingUnits.map((row, i) => (
+                    <div key={i} className="grid grid-cols-[2fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                      <div className="grid gap-1">
+                        {i === 0 && <Label className="text-xs">Unit name</Label>}
+                        <Input
+                          placeholder="e.g. bag"
+                          value={row.unit}
+                          onChange={(e) => updateSellingUnitRow(i, "unit", e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        {i === 0 && <Label className="text-xs">= how many base units</Label>}
+                        <Input
+                          type="number"
+                          placeholder="1"
+                          value={row.conversionToBase}
+                          onChange={(e) => updateSellingUnitRow(i, "conversionToBase", e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        {i === 0 && <Label className="text-xs">Price (KES)</Label>}
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={row.sellingPrice}
+                          onChange={(e) => updateSellingUnitRow(i, "sellingPrice", e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={formData.sellingUnits.length <= 1}
+                        onClick={() => removeSellingUnitRow(i)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
               <DialogFooter>
@@ -683,7 +790,7 @@ export default function ProductsPage() {
             </TableHeader>
             <TableBody>
               {paginated.map((product) => {
-                const status = deriveStatus(product.quantity, product.reorderLevel);
+                const status = deriveStatus(toNumber(product.quantity), toNumber(product.reorderLevel));
                 return (
                   <TableRow key={product.id}>
                     <TableCell>
@@ -711,9 +818,11 @@ export default function ProductsPage() {
                       {formatCurrency(toNumber(product.buyingPrice))}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(toNumber(product.sellingPrice))}
+                      {formatCurrency(primaryPrice(product))}
                     </TableCell>
-                    <TableCell className="text-right">{product.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      {toNumber(product.quantity)} {product.baseUnit}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[status]}>{status}</Badge>
                     </TableCell>
@@ -898,18 +1007,17 @@ export default function ProductsPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Selling Price (KES)</Label>
+                <Label>Base Unit (stock is counted in this)</Label>
                 <Input
-                  type="number"
-                  placeholder="0"
-                  value={formData.sellingPrice}
-                  onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                  placeholder="e.g. pcs, kg, litre"
+                  value={formData.baseUnit}
+                  onChange={(e) => setFormData({ ...formData, baseUnit: e.target.value })}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Quantity</Label>
+                <Label>Quantity in stock (in base unit)</Label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -918,7 +1026,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Reorder Level</Label>
+                <Label>Reorder Level (in base unit)</Label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -926,6 +1034,57 @@ export default function ProductsPage() {
                   onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label>Ways this is sold</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addSellingUnitRow}>
+                  <Plus className="mr-1 h-3 w-3" /> Add unit
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                e.g. cement: &ldquo;bag&rdquo; = 50 {formData.baseUnit || "base units"} at 850, and &ldquo;kg&rdquo; = 1 at 25 —
+                both sell from the same stock.
+              </p>
+              {formData.sellingUnits.map((row, i) => (
+                <div key={i} className="grid grid-cols-[2fr_1.5fr_1.5fr_auto] gap-2 items-end">
+                  <div className="grid gap-1">
+                    {i === 0 && <Label className="text-xs">Unit name</Label>}
+                    <Input
+                      placeholder="e.g. bag"
+                      value={row.unit}
+                      onChange={(e) => updateSellingUnitRow(i, "unit", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    {i === 0 && <Label className="text-xs">= how many base units</Label>}
+                    <Input
+                      type="number"
+                      placeholder="1"
+                      value={row.conversionToBase}
+                      onChange={(e) => updateSellingUnitRow(i, "conversionToBase", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    {i === 0 && <Label className="text-xs">Price (KES)</Label>}
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={row.sellingPrice}
+                      onChange={(e) => updateSellingUnitRow(i, "sellingPrice", e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={formData.sellingUnits.length <= 1}
+                    onClick={() => removeSellingUnitRow(i)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter>

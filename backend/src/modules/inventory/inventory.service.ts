@@ -6,8 +6,32 @@ import notificationService from "../../services/notification.service";
 
 const productInclude = {
   supplier: true,
-  category: true
+  category: true,
+  sellingUnits: true
 } satisfies Prisma.ProductInclude;
+
+// Shape coming from the validated request body (inventory.validation.ts) —
+// sellingUnits is a plain array here, not yet a Prisma nested-write object.
+type SellingUnitInput = {
+  id?: string;
+  unit: string;
+  conversionToBase: number;
+  sellingPrice: number;
+};
+
+type ProductInput = {
+  productCode: string;
+  name: string;
+  description?: string;
+  buyingPrice: number;
+  quantity?: number;
+  reorderLevel?: number;
+  baseUnit?: string;
+  sellingUnits?: SellingUnitInput[];
+  imageUrl?: string;
+  categoryId?: string;
+  supplierId?: string;
+};
 
 const ensureFksExist = async (
   data: { categoryId?: string | null; supplierId?: string | null }
@@ -28,30 +52,37 @@ const ensureFksExist = async (
   }
 };
 
-const extractConnectId = (
-  v:
-    | Prisma.CategoryUpdateOneWithoutProductsNestedInput
-    | Prisma.SupplierUpdateOneWithoutProductsNestedInput
-    | undefined
-): string | undefined =>
-  v && "connect" in v && v.connect && !Array.isArray(v.connect)
-    ? (v.connect as { id?: string }).id
-    : undefined;
-
 class InventoryService {
   async createProduct(
-    data: Prisma.ProductUncheckedCreateInput,
+    data: ProductInput,
     userId: string
   ) {
     await ensureFksExist(data);
 
-    const isLowStock =
-      typeof data.quantity === "number" &&
-      typeof data.reorderLevel === "number" &&
-      data.quantity <= data.reorderLevel;
+    const quantity = data.quantity ?? 0;
+    const reorderLevel = data.reorderLevel ?? 10;
+    const isLowStock = quantity <= reorderLevel;
+
+    const { sellingUnits, categoryId, supplierId, ...rest } = data;
 
     const product = await prisma.$transaction(async (tx) => {
-      const created = await tx.product.create({ data });
+      const created = await tx.product.create({
+        data: {
+          ...rest,
+          quantity,
+          reorderLevel,
+          category: categoryId ? { connect: { id: categoryId } } : undefined,
+          supplier: supplierId ? { connect: { id: supplierId } } : undefined,
+          sellingUnits: {
+            create: (sellingUnits ?? []).map((u) => ({
+              unit: u.unit,
+              conversionToBase: u.conversionToBase,
+              sellingPrice: u.sellingPrice
+            }))
+          }
+        },
+        include: productInclude
+      });
       await tx.auditLog.create({
         data: {
           userId,
@@ -66,8 +97,8 @@ class InventoryService {
       notificationService
         .notifyLowStock(
           product.name,
-          product.quantity,
-          product.reorderLevel
+          Number(product.quantity),
+          Number(product.reorderLevel)
         )
         .catch((err) => console.error("notifyLowStock failed", err));
     }
@@ -133,7 +164,7 @@ class InventoryService {
 
   async updateProduct(
     id: string,
-    data: Prisma.ProductUpdateInput,
+    data: Partial<ProductInput>,
     userId: string
   ) {
     const current = await prisma.product.findUnique({
@@ -160,21 +191,53 @@ class InventoryService {
     }
 
     await ensureFksExist({
-      categoryId: extractConnectId(data.category),
-      supplierId: extractConnectId(data.supplier)
+      categoryId: data.categoryId,
+      supplierId: data.supplierId
     });
 
-    const nextQty =
-      typeof data.quantity === "number" ? data.quantity : current.quantity;
-    const nextReorder =
-      typeof data.reorderLevel === "number"
-        ? data.reorderLevel
-        : current.reorderLevel;
-    const wasLow = current.quantity <= current.reorderLevel;
+    const nextQty = data.quantity ?? Number(current.quantity);
+    const nextReorder = data.reorderLevel ?? Number(current.reorderLevel);
+    const wasLow = Number(current.quantity) <= Number(current.reorderLevel);
     const isLow = nextQty <= nextReorder;
 
+    const { sellingUnits, categoryId, supplierId, ...rest } = data;
+
     const product = await prisma.$transaction(async (tx) => {
-      const updated = await tx.product.update({ where: { id }, data });
+      // sellingUnits is treated as a full replace when provided: clear the
+      // old rows and recreate, since the frontend always sends the complete
+      // current list (add/remove/edit rows) rather than a diff.
+      if (sellingUnits) {
+        await tx.productUnit.deleteMany({ where: { productId: id } });
+      }
+
+      const updated = await tx.product.update({
+        where: { id },
+        data: {
+          ...rest,
+          category:
+            categoryId === undefined
+              ? undefined
+              : categoryId
+              ? { connect: { id: categoryId } }
+              : { disconnect: true },
+          supplier:
+            supplierId === undefined
+              ? undefined
+              : supplierId
+              ? { connect: { id: supplierId } }
+              : { disconnect: true },
+          sellingUnits: sellingUnits
+            ? {
+                create: sellingUnits.map((u) => ({
+                  unit: u.unit,
+                  conversionToBase: u.conversionToBase,
+                  sellingPrice: u.sellingPrice
+                }))
+              }
+            : undefined
+        },
+        include: productInclude
+      });
       await tx.auditLog.create({
         data: {
           userId,
@@ -190,8 +253,8 @@ class InventoryService {
       notificationService
         .notifyLowStock(
           product.name,
-          product.quantity,
-          product.reorderLevel
+          Number(product.quantity),
+          Number(product.reorderLevel)
         )
         .catch((err) => console.error("notifyLowStock failed", err));
     }
@@ -233,6 +296,9 @@ class InventoryService {
     }
 
     await prisma.$transaction(async (tx) => {
+      // ProductUnit rows cascade-delete via the schema's onDelete: Cascade,
+      // but being explicit here keeps this readable/safe if that ever changes.
+      await tx.productUnit.deleteMany({ where: { productId: id } });
       await tx.product.delete({ where: { id } });
       await tx.auditLog.create({
         data: {
@@ -257,7 +323,7 @@ class InventoryService {
       orderBy: { quantity: "asc" },
       include: productInclude
     });
-    return all.filter((p) => p.quantity <= p.reorderLevel);
+    return all.filter((p) => Number(p.quantity) <= Number(p.reorderLevel));
   }
 }
 

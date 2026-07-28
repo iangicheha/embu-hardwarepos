@@ -133,11 +133,12 @@ model Product {
   description     String?
 
   buyingPrice     Decimal   @db.Decimal(12, 2)
-  sellingPrice    Decimal   @db.Decimal(12, 2)
 
-  quantity        Int       @default(0)
+  quantity        Decimal   @default(0) @db.Decimal(12, 4) // always stored in baseUnit; decimal so fractional stock (e.g. 15.5kg) is possible
 
-  reorderLevel    Int       @default(10)
+  baseUnit        String    @default("pcs") // e.g. "kg", "pcs" — what quantity/reorderLevel are counted in
+
+  reorderLevel    Decimal   @default(10) @db.Decimal(12, 4)
 
   isArchived      Boolean   @default(false)
 
@@ -149,6 +150,7 @@ model Product {
   supplierId      String?
   supplier        Supplier? @relation(fields: [supplierId], references: [id])
 
+  sellingUnits    ProductUnit[]
   orderItems      OrderItem[]
   restocks        Restock[]
 
@@ -158,6 +160,34 @@ model Product {
   @@index([name])
   @@index([productCode])
   @@map("products")
+}
+
+//
+// PRODUCT SELLING UNITS
+// e.g. Product "Cement" has baseUnit "kg" (quantity tracked in kg),
+// and sellingUnits: [{unit:"bag", conversionToBase:50, sellingPrice:850},
+//                    {unit:"kg",  conversionToBase:1,  sellingPrice:25}]
+//
+
+model ProductUnit {
+  id                String    @id @default(uuid())
+
+  productId         String
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  unit              String    // e.g. "bag", "kg", "pcs" — free text
+
+  conversionToBase  Decimal   @db.Decimal(12, 4) // how many baseUnit 1 of this unit equals
+
+  sellingPrice      Decimal   @db.Decimal(12, 2)
+
+  orderItems        OrderItem[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([productId, unit])
+  @@map("product_units")
 }
 
 //
@@ -230,9 +260,12 @@ model OrderItem {
   productId      String
   product        Product   @relation(fields: [productId], references: [id])
 
-  quantity       Int
+  productUnitId  String?
+  productUnit    ProductUnit? @relation(fields: [productUnitId], references: [id])
 
-  unitPrice      Decimal   @db.Decimal(12, 2)
+  quantity       Decimal   @db.Decimal(12, 4) // quantity in the SOLD unit (e.g. 15 for "15 kg", 1 for "1 bag")
+
+  unitPrice      Decimal   @db.Decimal(12, 2) // price per sold unit at time of sale
 
   total          Decimal   @db.Decimal(12, 2)
 
@@ -249,7 +282,7 @@ model Restock {
   productId       String
   product         Product   @relation(fields: [productId], references: [id])
 
-  quantityAdded   Int
+  quantityAdded   Decimal   @db.Decimal(12, 4)
 
   supplierId      String
   supplier        Supplier  @relation(fields: [supplierId], references: [id])
