@@ -239,7 +239,11 @@ export async function getOrder(id: string) {
 }
 
 export async function createOrder(data: {
-  items: Array<{ productId: string; quantity: number }>;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
   customerName?: string;
   paymentMethod: "CASH" | "MPESA" | "BANK_TRANSFER" | "CREDIT";
   discount?: number;
@@ -718,27 +722,69 @@ type RestockCostReport = {
   count: number;
 };
 
-type CreateProductInput = {
+export type ProductUnitInput = {
+  unit: string;
+  conversionToBase: number;
+  sellingPrice: number;
+};
+
+export type ProductUnit = {
+  id: string;
+  unit: string;
+  conversionToBase: number;
+  sellingPrice: number;
+};
+
+export type CreateProductInput = {
   productCode: string;
   name: string;
   description?: string;
+
   buyingPrice: number;
-  sellingPrice: number;
+
   quantity: number;
   reorderLevel: number;
+
+  baseUnit: string;
+
+  sellingUnits: ProductUnitInput[];
+
   imageUrl?: string;
   categoryId?: string;
   supplierId?: string;
 };
 
-type Product = CreateProductInput & {
+export type Product = {
   id: string;
+
+  productCode: string;
+  name: string;
+  description?: string;
+
+  buyingPrice: number;
+
+  quantity: number;
+  reorderLevel: number;
+
+  baseUnit: string;
+
+  sellingUnits: ProductUnit[];
+
+  imageUrl?: string;
+
   createdAt: string;
   updatedAt: string;
-  category?: { id: string; name: string } | null;
-  supplier?: { id: string; supplierName: string } | null;
-};
 
+  category?: {
+    id: string;
+    name: string;
+  } | null;
+
+  supplier?: {
+    id: string;
+    supplierName: string;
+  } | null;
+};
 type Category = {
   id: string;
   name: string;

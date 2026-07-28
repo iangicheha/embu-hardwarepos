@@ -25,12 +25,20 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, toNumber } from "@/lib/utils";
 
+interface ApiProductUnit {
+  id: string;
+  unit: string;               // e.g. "bag", "kg", "pcs"
+  conversionToBase: string | number; // how many baseUnit one of this equals
+  sellingPrice: string | number;     // price per ONE of this unit
+}
+
 interface ApiProduct {
   id: string;
   productCode: string;
   name: string;
-  quantity: number;
-  sellingPrice: string | number;
+  quantity: string | number; // in baseUnit
+  baseUnit: string;
+  sellingUnits: ApiProductUnit[];
   buyingPrice: string | number;
   imageUrl?: string | null;
   category?: { id: string; name: string } | null;
@@ -38,7 +46,8 @@ interface ApiProduct {
 
 interface CartItem {
   product: ApiProduct;
-  quantity: number;
+  unit: ApiProductUnit; // which selling unit this cart line is in
+  quantity: number;     // count of `unit`, not of baseUnit
 }
 
 type PaymentMethod = "CASH" | "MPESA" | "BANK_TRANSFER" | "CREDIT";
@@ -149,47 +158,64 @@ export default function POSPage() {
       const categoryName = p.category?.name;
       const matchesCategory =
         activeCategory === "All" || categoryName === activeCategory;
-      return matchesSearch && matchesCategory && p.quantity > 0;
+      return matchesSearch && matchesCategory && toNumber(p.quantity) > 0;
     });
   }, [debouncedSearch, activeCategory, products]);
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + toNumber(item.product.sellingPrice) * item.quantity,
+    (sum, item) => sum + toNumber(item.unit.sellingPrice) * item.quantity,
     0
   );
   const grandTotal = subtotal - discount; // tax included
 
-  function addToCart(product: ApiProduct) {
+  // Total baseUnit stock already committed to the cart for a product,
+  // across all its selling units (e.g. some cement already added as bags
+  // AND some as loose kg in the same sale).
+  function baseUnitsInCart(productId: string, excludingUnitId?: string): number {
+    return cart
+      .filter((item) => item.product.id === productId && item.unit.id !== excludingUnitId)
+      .reduce((sum, item) => sum + item.quantity * toNumber(item.unit.conversionToBase), 0);
+  }
+
+  function addToCart(product: ApiProduct, unit: ApiProductUnit) {
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find(
+        (item) => item.product.id === product.id && item.unit.id === unit.id
+      );
+      const alreadyCommittedBase = baseUnitsInCart(product.id, unit.id) +
+        (existing ? existing.quantity * toNumber(unit.conversionToBase) : 0);
+      const wouldBeBase = alreadyCommittedBase + toNumber(unit.conversionToBase);
+      if (wouldBeBase > toNumber(product.quantity)) return prev; // not enough stock left
+
       if (existing) {
-        if (existing.quantity >= product.quantity) return prev;
         return prev.map((item) =>
-          item.product.id === product.id
+          item.product.id === product.id && item.unit.id === unit.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, unit, quantity: 1 }];
     });
   }
 
-  function updateQuantity(productId: string, delta: number) {
+  function updateQuantity(productId: string, unitId: string, delta: number) {
     setCart((prev) =>
       prev
         .map((item) => {
-          if (item.product.id !== productId) return item;
+          if (item.product.id !== productId || item.unit.id !== unitId) return item;
           const newQty = item.quantity + delta;
           if (newQty <= 0) return null;
-          if (newQty > item.product.quantity) return item;
+          const otherUnitsBase = baseUnitsInCart(productId, unitId);
+          const wouldBeBase = otherUnitsBase + newQty * toNumber(item.unit.conversionToBase);
+          if (wouldBeBase > toNumber(item.product.quantity)) return item; // not enough stock
           return { ...item, quantity: newQty };
         })
         .filter(Boolean) as CartItem[]
     );
   }
 
-  function removeFromCart(productId: string) {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  function removeFromCart(productId: string, unitId: string) {
+    setCart((prev) => prev.filter((item) => !(item.product.id === productId && item.unit.id === unitId)));
   }
 
   async function completeSale() {
@@ -199,11 +225,26 @@ export default function POSPage() {
       setSubmitting(true);
       setError(null);
 
+      // NOTE: the backend OrderItem model still only has a flat
+      // (quantity: Int, unitPrice: Decimal) — it doesn't yet know about
+      // per-product selling units. Until that's added, we convert each
+      // cart line down to baseUnit quantity + price-per-baseUnit here, so
+      // the total is correct and stock deduction (which presumably
+      // subtracts OrderItem.quantity from Product.quantity) still lines up
+      // in baseUnit terms. If a sale involves a fractional baseUnit amount
+      // (e.g. 0.5kg) this will need OrderItem.quantity to become Decimal
+      // on the backend — Int truncates it today.
       const orderData = {
-        items: cart.map(item => ({
-          productId: item.product.id,
-          quantity: item.quantity
-        })),
+        items: cart.map((item) => {
+          const conversion = toNumber(item.unit.conversionToBase) || 1;
+          const baseQuantity = item.quantity * conversion;
+          const pricePerBaseUnit = toNumber(item.unit.sellingPrice) / conversion;
+          return {
+            productId: item.product.id,
+            quantity: baseQuantity,
+            unitPrice: Math.round(pricePerBaseUnit * 100) / 100,
+          };
+        }),
         paymentMethod,
         discount,
         customerName: "Walk-in Customer"
@@ -215,8 +256,8 @@ export default function POSPage() {
       setSaleComplete(true);
       setProducts((prev) =>
         prev.map((p) => {
-          const cartItem = cart.find((c) => c.product.id === p.id);
-          return cartItem ? { ...p, quantity: p.quantity - cartItem.quantity } : p;
+          const soldBase = baseUnitsInCart(p.id);
+          return soldBase > 0 ? { ...p, quantity: toNumber(p.quantity) - soldBase } : p;
         })
       );
 
@@ -330,37 +371,65 @@ export default function POSPage() {
             <div className="text-center py-8 text-muted-foreground">No products found</div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => (
-                <motion.div
-                  key={product.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Card
-                    className="cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
-                    onClick={() => addToCart(product)}
+              {filteredProducts.map((product) => {
+                const units = product.sellingUnits ?? [];
+                const singleUnit = units.length === 1 ? units[0] : null;
+                return (
+                  <motion.div
+                    key={product.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <div className="relative h-32 w-full bg-muted">
-                      <img
-                        src={normalizeImageUrl(product.imageUrl)}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="p-3">
-                      <p className="truncate text-sm font-medium">{product.name}</p>
-                      <div className="mt-1 flex items-center justify-between">
-                        <span className="text-sm font-bold text-primary">
-                          {formatCurrency(product.sellingPrice)}
-                        </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {product.quantity} in stock
-                        </Badge>
+                    <Card
+                      className={`overflow-hidden transition-shadow hover:shadow-md ${singleUnit ? "cursor-pointer" : ""}`}
+                      onClick={singleUnit ? () => addToCart(product, singleUnit) : undefined}
+                    >
+                      <div className="relative h-32 w-full bg-muted">
+                        <img
+                          src={normalizeImageUrl(product.imageUrl)}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                      <CardContent className="p-3">
+                        <p className="truncate text-sm font-medium">{product.name}</p>
+                        {singleUnit ? (
+                          <div className="mt-1 flex items-center justify-between">
+                            <span className="text-sm font-bold text-primary">
+                              {formatCurrency(singleUnit.sellingPrice)} / {singleUnit.unit}
+                            </span>
+                            <Badge variant="secondary" className="text-xs">
+                              {toNumber(product.quantity)} {product.baseUnit} left
+                            </Badge>
+                          </div>
+                        ) : (
+                          <div className="mt-1 space-y-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {toNumber(product.quantity)} {product.baseUnit} left
+                            </Badge>
+                            <div className="flex flex-wrap gap-1">
+                              {units.map((u) => (
+                                <Button
+                                  key={u.id}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart(product, u);
+                                  }}
+                                >
+                                  {u.unit} · {formatCurrency(u.sellingPrice)}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -397,7 +466,7 @@ export default function POSPage() {
                 <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                   {cart.map((item) => (
                     <div
-                      key={item.product.id}
+                      key={`${item.product.id}-${item.unit.id}`}
                       className="flex items-center gap-2 rounded-lg border p-2"
                     >
                       <div className="flex-1 min-w-0">
@@ -405,7 +474,7 @@ export default function POSPage() {
                           {item.product.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatCurrency(item.product.sellingPrice)} each
+                          {formatCurrency(item.unit.sellingPrice)} / {item.unit.unit}
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
@@ -413,7 +482,7 @@ export default function POSPage() {
                           variant="outline"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => updateQuantity(item.product.id, -1)}
+                          onClick={() => updateQuantity(item.product.id, item.unit.id, -1)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -424,7 +493,7 @@ export default function POSPage() {
                           variant="outline"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => updateQuantity(item.product.id, 1)}
+                          onClick={() => updateQuantity(item.product.id, item.unit.id, 1)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -432,13 +501,13 @@ export default function POSPage() {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 text-destructive"
-                          onClick={() => removeFromCart(item.product.id)}
+                          onClick={() => removeFromCart(item.product.id, item.unit.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                       <span className="text-sm font-medium w-16 text-right">
-                        {formatCurrency(toNumber(item.product.sellingPrice) * item.quantity)}
+                        {formatCurrency(toNumber(item.unit.sellingPrice) * item.quantity)}
                       </span>
                     </div>
                   ))}
