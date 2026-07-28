@@ -216,7 +216,7 @@ class ReportsService {
     for (const order of orders) {
       revenue += Number(order.totalAmount);
       for (const item of order.items) {
-        cost += Number(item.product.buyingPrice) * item.quantity;
+        cost += Number(item.product.buyingPrice) * Number(item.quantity);
       }
     }
 
@@ -262,7 +262,7 @@ class ReportsService {
         quantity: 0,
         revenue: 0
       };
-      existing.quantity += item.quantity;
+      existing.quantity += Number(item.quantity);
       existing.revenue += Number(item.total);
       totals.set(item.productId, existing);
     }

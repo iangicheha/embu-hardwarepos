@@ -397,6 +397,24 @@ model Printer {
 }
 
 //
+// IMAGES
+// Uploaded product images, stored as bytes in Postgres (see
+// inventory.routes.ts upload-image handler) so they survive redeploys on
+// hosts with ephemeral filesystems.
+//
+
+model Image {
+  id         String   @id @default(uuid())
+
+  data       Bytes
+  mimeType   String
+
+  createdAt  DateTime @default(now())
+
+  @@map("images")
+}
+
+//
 // FUTURE MULTI-BRANCH SUPPORT
 //
 
