@@ -399,11 +399,17 @@ export default function ReportsPage() {
                     </TableRow>
                   )}
                   {(lookedUpOrder.items ?? []).map((item: any, idx: number) => {
-                    const unitPrice = toNumber(item.price ?? item.product?.sellingPrice);
+                    const unitPrice = toNumber(item.unitPrice);
                     const qty = toNumber(item.quantity);
+                    const unitLabel = item.productUnit?.unit;
                     return (
                       <TableRow key={item.id ?? idx}>
-                        <TableCell className="text-sm">{item.product?.name ?? "Unknown product"}</TableCell>
+                        <TableCell className="text-sm">
+                          {item.product?.name ?? "Unknown product"}
+                          {unitLabel ? (
+                            <span className="text-muted-foreground"> ({unitLabel})</span>
+                          ) : null}
+                        </TableCell>
                         <TableCell className="text-right text-sm">{qty}</TableCell>
                         <TableCell className="text-right text-sm">{formatCurrency(unitPrice)}</TableCell>
                         <TableCell className="text-right text-sm font-medium">
@@ -587,6 +593,7 @@ export default function ReportsPage() {
                 <TableHead>Order No.</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Payment</TableHead>
+                <TableHead>Items</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
@@ -594,16 +601,25 @@ export default function ReportsPage() {
             <TableBody>
               {visibleOrders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
+                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
                     No orders match these filters.
                   </TableCell>
                 </TableRow>
               )}
               {visibleOrders.map((order) => {
-                const totalQty = (order.items ?? []).reduce(
+                const items = order.items ?? [];
+                const totalQty = items.reduce(
                   (s: number, it: any) => s + toNumber(it.quantity),
                   0
                 );
+                const itemsSummary = items
+                  .map((it: any) => {
+                    const name = it.product?.name ?? "Unknown";
+                    const unit = it.productUnit?.unit;
+                    const qty = toNumber(it.quantity);
+                    return `${qty}${unit ? " " + unit : "x"} ${name}`;
+                  })
+                  .join(", ");
                 return (
                   <TableRow
                     key={order.id}
@@ -619,6 +635,9 @@ export default function ReportsPage() {
                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
                     </TableCell>
                     <TableCell className="text-sm">{order.paymentMethod ?? "—"}</TableCell>
+                    <TableCell className="text-sm max-w-xs truncate" title={itemsSummary}>
+                      {itemsSummary || "—"}
+                    </TableCell>
                     <TableCell className="text-right text-sm">{totalQty}</TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(order.totalAmount)}
