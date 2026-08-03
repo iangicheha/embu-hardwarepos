@@ -214,6 +214,27 @@ export default function POSPage() {
     );
   }
 
+  // For typing an exact amount directly (e.g. "13" kg) instead of clicking
+  // +/- repeatedly. newQty is the absolute count of `unit`, not a delta.
+  // Clamps to available stock rather than rejecting outright, since a
+  // cashier retyping a number mid-edit will pass through invalid
+  // intermediate values (e.g. typing "13" briefly shows "1").
+  function setQuantity(productId: string, unitId: string, newQty: number) {
+    setCart((prev) =>
+      prev
+        .map((item) => {
+          if (item.product.id !== productId || item.unit.id !== unitId) return item;
+          if (!Number.isFinite(newQty) || newQty <= 0) return null;
+          const otherUnitsBase = baseUnitsInCart(productId, unitId);
+          const maxQtyForThisUnit =
+            (toNumber(item.product.quantity) - otherUnitsBase) / toNumber(item.unit.conversionToBase);
+          const clamped = Math.min(newQty, Math.max(maxQtyForThisUnit, 0));
+          return clamped <= 0 ? null : { ...item, quantity: clamped };
+        })
+        .filter(Boolean) as CartItem[]
+    );
+  }
+
   function removeFromCart(productId: string, unitId: string) {
     setCart((prev) => prev.filter((item) => !(item.product.id === productId && item.unit.id === unitId)));
   }
@@ -230,6 +251,7 @@ export default function POSPage() {
           productId: item.product.id,
           productUnitId: item.unit.id,
           quantity: item.quantity, // count of item.unit, e.g. "3 bags"
+          unitPrice: toNumber(item.unit.sellingPrice),
         })),
         paymentMethod,
         discount,
@@ -472,9 +494,14 @@ export default function POSPage() {
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-5 text-center text-sm font-medium">
-                          {item.quantity}
-                        </span>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => setQuantity(item.product.id, item.unit.id, Number(e.target.value))}
+                          className="h-6 w-14 text-center text-sm px-1"
+                          min={0}
+                          step={item.unit.unit === "pcs" ? 1 : 0.1}
+                        />
                         <Button
                           variant="outline"
                           size="icon"
