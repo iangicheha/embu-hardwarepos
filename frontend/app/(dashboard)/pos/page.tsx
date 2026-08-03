@@ -17,20 +17,37 @@ import {
   Loader2,
 } from "lucide-react";
 import { getProducts, createOrder, downloadReceipt, getSettings } from "@/lib/api";
-import type { Product, ProductUnit } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, toNumber } from "@/lib/utils";
 
-type ApiProduct = Product; // stock is tracked in baseUnit; sell via any of product.sellingUnits
+interface ApiProductUnit {
+  id: string;
+  unit: string;               // e.g. "bag", "kg", "pcs"
+  conversionToBase: string | number; // how many baseUnit one of this equals
+  sellingPrice: string | number;     // price per ONE of this unit
+}
+
+interface ApiProduct {
+  id: string;
+  productCode: string;
+  name: string;
+  quantity: string | number; // in baseUnit
+  baseUnit: string;
+  sellingUnits: ApiProductUnit[];
+  buyingPrice: string | number;
+  imageUrl?: string | null;
+  category?: { id: string; name: string } | null;
+}
 
 interface CartItem {
   product: ApiProduct;
-  unit: ProductUnit;   // which selling unit was picked, e.g. "bag" or "kg"
-  quantity: number;    // quantity in that unit, e.g. 15 for "15 kg" — decimals allowed
+  unit: ApiProductUnit; // which selling unit this cart line is in
+  quantity: number;     // count of `unit`, not of baseUnit
 }
 
 type PaymentMethod = "CASH" | "MPESA" | "BANK_TRANSFER" | "CREDIT";
@@ -73,7 +90,7 @@ async function fetchAllProducts(): Promise<ApiProduct[]> {
   const limit = 100;
   while (true) {
     const res = await getProducts(page, limit);
-    const items = res.data?.products ?? [];
+    const items = (res.data?.products ?? []) as ApiProduct[];
     all.push(...items);
     const pagination = res.data?.pagination;
     if (!pagination || page >= pagination.totalPages) break;
@@ -141,7 +158,7 @@ export default function POSPage() {
       const categoryName = p.category?.name;
       const matchesCategory =
         activeCategory === "All" || categoryName === activeCategory;
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && toNumber(p.quantity) > 0;
     });
   }, [debouncedSearch, activeCategory, products]);
 
@@ -151,34 +168,29 @@ export default function POSPage() {
   );
   const grandTotal = subtotal - discount; // tax included
 
-  // how much baseUnit stock a cart line consumes, e.g. 3 "bag" @ conversionToBase 50 = 150 kg
-  function baseUnitsUsed(unit: ProductUnit, qty: number): number {
-    return qty * toNumber(unit.conversionToBase);
+  // Total baseUnit stock already committed to the cart for a product,
+  // across all its selling units (e.g. some cement already added as bags
+  // AND some as loose kg in the same sale).
+  function baseUnitsInCart(productId: string, excludingUnitId?: string): number {
+    return cart
+      .filter((item) => item.product.id === productId && item.unit.id !== excludingUnitId)
+      .reduce((sum, item) => sum + item.quantity * toNumber(item.unit.conversionToBase), 0);
   }
 
-  function stockAvailableFor(product: ApiProduct, unit: ProductUnit, excludingCartQty = 0): number {
-    const usedElsewhere = cart
-      .filter((c) => c.product.id === product.id && c.unit.id !== unit.id)
-      .reduce((sum, c) => sum + baseUnitsUsed(c.unit, c.quantity), 0);
-    const availableBase = toNumber(product.quantity) - usedElsewhere;
-    return availableBase / toNumber(unit.conversionToBase) - excludingCartQty;
-  }
-
-  function addToCart(product: ApiProduct, unit: ProductUnit) {
-    const existing = cart.find(
-      (item) => item.product.id === product.id && item.unit.id === unit.id
-    );
-    const maxQty = stockAvailableFor(product, unit, existing?.quantity ?? 0);
-    if (maxQty <= 0) {
-      setError(`${product.name} is out of stock (0 ${product.baseUnit} available)`);
-      return;
-    }
-    setError(null);
+  function addToCart(product: ApiProduct, unit: ApiProductUnit) {
     setCart((prev) => {
+      const existing = prev.find(
+        (item) => item.product.id === product.id && item.unit.id === unit.id
+      );
+      const alreadyCommittedBase = baseUnitsInCart(product.id, unit.id) +
+        (existing ? existing.quantity * toNumber(unit.conversionToBase) : 0);
+      const wouldBeBase = alreadyCommittedBase + toNumber(unit.conversionToBase);
+      if (wouldBeBase > toNumber(product.quantity)) return prev; // not enough stock left
+
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id && item.unit.id === unit.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.quantity + maxQty) }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
@@ -186,30 +198,24 @@ export default function POSPage() {
     });
   }
 
-  function setCartQuantity(productId: string, unitId: string, rawQty: number) {
+  function updateQuantity(productId: string, unitId: string, delta: number) {
     setCart((prev) =>
       prev
         .map((item) => {
           if (item.product.id !== productId || item.unit.id !== unitId) return item;
-          if (rawQty <= 0) return null;
-          const maxQty = stockAvailableFor(item.product, item.unit, item.quantity);
-          const clamped = Math.min(rawQty, item.quantity + maxQty);
-          return { ...item, quantity: clamped };
+          const newQty = item.quantity + delta;
+          if (newQty <= 0) return null;
+          const otherUnitsBase = baseUnitsInCart(productId, unitId);
+          const wouldBeBase = otherUnitsBase + newQty * toNumber(item.unit.conversionToBase);
+          if (wouldBeBase > toNumber(item.product.quantity)) return item; // not enough stock
+          return { ...item, quantity: newQty };
         })
         .filter(Boolean) as CartItem[]
     );
   }
 
-  function updateQuantity(productId: string, unitId: string, delta: number) {
-    const current = cart.find((c) => c.product.id === productId && c.unit.id === unitId);
-    if (!current) return;
-    setCartQuantity(productId, unitId, current.quantity + delta);
-  }
-
   function removeFromCart(productId: string, unitId: string) {
-    setCart((prev) =>
-      prev.filter((item) => !(item.product.id === productId && item.unit.id === unitId))
-    );
+    setCart((prev) => prev.filter((item) => !(item.product.id === productId && item.unit.id === unitId)));
   }
 
   async function completeSale() {
@@ -220,11 +226,10 @@ export default function POSPage() {
       setError(null);
 
       const orderData = {
-        items: cart.map(item => ({
+        items: cart.map((item) => ({
           productId: item.product.id,
           productUnitId: item.unit.id,
-          quantity: item.quantity,
-          unitPrice: toNumber(item.unit.sellingPrice)
+          quantity: item.quantity, // count of item.unit, e.g. "3 bags"
         })),
         paymentMethod,
         discount,
@@ -237,10 +242,8 @@ export default function POSPage() {
       setSaleComplete(true);
       setProducts((prev) =>
         prev.map((p) => {
-          const usedBase = cart
-            .filter((c) => c.product.id === p.id)
-            .reduce((sum, c) => sum + baseUnitsUsed(c.unit, c.quantity), 0);
-          return usedBase > 0 ? { ...p, quantity: toNumber(p.quantity) - usedBase } : p;
+          const soldBase = baseUnitsInCart(p.id);
+          return soldBase > 0 ? { ...p, quantity: toNumber(p.quantity) - soldBase } : p;
         })
       );
 
@@ -356,23 +359,16 @@ export default function POSPage() {
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredProducts.map((product) => {
                 const units = product.sellingUnits ?? [];
-                const hasSingleUnit = units.length === 1;
-                const outOfStock = toNumber(product.quantity) <= 0;
+                const singleUnit = units.length === 1 ? units[0] : null;
                 return (
                   <motion.div
                     key={product.id}
-                    whileHover={outOfStock ? undefined : { scale: 1.02 }}
-                    whileTap={outOfStock ? undefined : { scale: 0.98 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <Card
-                      className={
-                        outOfStock
-                          ? "overflow-hidden opacity-50 grayscale cursor-not-allowed"
-                          : "cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
-                      }
-                      onClick={() =>
-                        !outOfStock && hasSingleUnit && addToCart(product, units[0])
-                      }
+                      className={`overflow-hidden transition-shadow hover:shadow-md ${singleUnit ? "cursor-pointer" : ""}`}
+                      onClick={singleUnit ? () => addToCart(product, singleUnit) : undefined}
                     >
                       <div className="relative h-32 w-full bg-muted">
                         <img
@@ -383,37 +379,36 @@ export default function POSPage() {
                       </div>
                       <CardContent className="p-3">
                         <p className="truncate text-sm font-medium">{product.name}</p>
-                        <div className="mt-1 flex items-center justify-between">
-                          <span className={outOfStock ? "text-xs font-medium text-destructive" : "text-xs text-muted-foreground"}>
-                            {outOfStock
-                              ? "Out of stock"
-                              : `${toNumber(product.quantity)} ${product.baseUnit} in stock`}
-                          </span>
-                        </div>
-                        {units.length === 0 ? (
-                          <div className="mt-2 text-xs font-medium text-destructive">
-                            No price set — edit this product
-                          </div>
-                        ) : hasSingleUnit ? (
-                          <div className="mt-2 text-sm font-bold text-primary">
-                            {formatCurrency(units[0]?.sellingPrice ?? 0)} / {units[0]?.unit}
+                        {singleUnit ? (
+                          <div className="mt-1 flex items-center justify-between">
+                            <span className="text-sm font-bold text-primary">
+                              {formatCurrency(singleUnit.sellingPrice)} / {singleUnit.unit}
+                            </span>
+                            <Badge variant="secondary" className="text-xs">
+                              {toNumber(product.quantity)} {product.baseUnit} left
+                            </Badge>
                           </div>
                         ) : (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {units.map((u) => (
-                              <button
-                                key={u.id}
-                                type="button"
-                                disabled={outOfStock}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  addToCart(product, u);
-                                }}
-                                className="rounded-md border px-2 py-1 text-xs hover:bg-primary hover:text-white transition-colors disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit"
-                              >
-                                {u.unit} · {formatCurrency(u.sellingPrice)}
-                              </button>
-                            ))}
+                          <div className="mt-1 space-y-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {toNumber(product.quantity)} {product.baseUnit} left
+                            </Badge>
+                            <div className="flex flex-wrap gap-1">
+                              {units.map((u) => (
+                                <Button
+                                  key={u.id}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart(product, u);
+                                  }}
+                                >
+                                  {u.unit} · {formatCurrency(u.sellingPrice)}
+                                </Button>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </CardContent>
@@ -457,7 +452,7 @@ export default function POSPage() {
                 <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                   {cart.map((item) => (
                     <div
-                      key={`${item.product.id}-${item.unit.id}`}
+                      key={`${item.product.id}:${item.unit.id}`}
                       className="flex items-center gap-2 rounded-lg border p-2"
                     >
                       <div className="flex-1 min-w-0">
@@ -477,17 +472,9 @@ export default function POSPage() {
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <Input
-                          type="number"
-                          step="any"
-                          min={0}
-                          value={item.quantity}
-                          onChange={(e) =>
-                            setCartQuantity(item.product.id, item.unit.id, Number(e.target.value))
-                          }
-                          className="h-6 w-14 text-center text-sm px-1"
-                        />
-                        <span className="text-xs text-muted-foreground">{item.unit.unit}</span>
+                        <span className="w-5 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="outline"
                           size="icon"

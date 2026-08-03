@@ -1,5 +1,8 @@
 import prisma from "../src/database/prisma";
-import plumbingData from "../../plumbing_piping.json";
+const plumbingData = require("../../backend/scripts/plumbing-piping.json") as Array<{
+  name: string;
+  unitPrice: number;
+}>;
 
 async function main() {
   console.log("Starting plumbing prices update...");
