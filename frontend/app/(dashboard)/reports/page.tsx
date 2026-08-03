@@ -99,7 +99,11 @@ export default function ReportsPage() {
           getDashboardSummary(),
           getSuppliers(1, 100),
           getProducts(1, 100),
-          getSalesReport(dateFrom, dateTo).catch(() => ({ data: [] })),
+          getSalesReport(dateFrom, dateTo).catch((err) => {
+            console.error("getSalesReport failed:", err);
+            setError(`Sales report failed to load: ${err?.message ?? "unknown error"}`);
+            return { data: [] };
+          }),
           getRestocks(1, 100).catch(() => ({ data: { restocks: [] } })),
         ]);
 
