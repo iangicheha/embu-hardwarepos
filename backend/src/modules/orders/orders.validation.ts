@@ -22,7 +22,8 @@ export const createOrderSchema = z
       .array(
         z.object({
           productId: z.string().uuid(),
-          quantity: z.number().int().positive()
+          productUnitId: z.string().uuid(),
+          quantity: z.number().positive() // no .int() — kg/litre sales can be fractional
         })
       )
       .min(1)
