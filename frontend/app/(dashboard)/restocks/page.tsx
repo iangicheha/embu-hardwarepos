@@ -143,17 +143,39 @@ export default function RestocksPage() {
     }
   }
 
+  // Restock History filter — narrows the list to one product instead of
+  // scrolling every day's entries to find it.
+  const [historyProductFilter, setHistoryProductFilter] = useState<string>("all");
+
+  // Products that actually have restock history, sorted alphabetically —
+  // the filter dropdown only offers products worth filtering by.
+  const productsWithRestockHistory = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const r of restocks) {
+      const id = r.productId ?? r.product?.id;
+      const name = r.product?.name ?? r.productName;
+      if (id && name && !seen.has(id)) seen.set(id, name);
+    }
+    return Array.from(seen.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [restocks]);
+
   // Groups restock history by calendar day so a day's restocks sit
   // together under one date heading, most recent day first.
   const restocksByDate = useMemo(() => {
+    const filtered =
+      historyProductFilter === "all"
+        ? restocks
+        : restocks.filter((r) => (r.productId ?? r.product?.id) === historyProductFilter);
     const groups = new Map<string, any[]>();
-    for (const r of restocks) {
+    for (const r of filtered) {
       const dateKey = new Date(r.createdAt).toDateString();
       if (!groups.has(dateKey)) groups.set(dateKey, []);
       groups.get(dateKey)!.push(r);
     }
     return Array.from(groups.entries());
-  }, [restocks]);
+  }, [restocks, historyProductFilter]);
 
   // --- Add new product (inline) state ---
   const [showNewProductForm, setShowNewProductForm] = useState(false);
@@ -690,8 +712,23 @@ export default function RestocksPage() {
 
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
               <CardTitle className="text-base">Restock History</CardTitle>
+              <div className="w-56">
+                <Select value={historyProductFilter} onValueChange={setHistoryProductFilter}>
+                  <SelectTrigger className="h-8">
+                    <SelectValue placeholder="Filter by product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All products</SelectItem>
+                    {productsWithRestockHistory.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {rowActionError && (
@@ -701,7 +738,11 @@ export default function RestocksPage() {
               )}
 
               {restocksByDate.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No restocks recorded yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  {historyProductFilter === "all"
+                    ? "No restocks recorded yet."
+                    : "No restocks recorded for this product."}
+                </p>
               ) : (
                 restocksByDate.map(([dateKey, dayRestocks]) => (
                   <div key={dateKey} className="space-y-2">
