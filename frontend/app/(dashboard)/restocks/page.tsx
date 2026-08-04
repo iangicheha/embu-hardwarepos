@@ -35,7 +35,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -293,13 +295,13 @@ export default function RestocksPage() {
   );
 
   function selectProduct(p: any) {
-    setFormData({ ...formData, productId: p.id });
+    if (!p) return;
+    setFormData((prev) => ({ ...prev, productId: p.id }));
     setProductQuery(p.name);
-    setProductDropdownOpen(false);
   }
 
   function clearProductSelection() {
-    setFormData({ ...formData, productId: "" });
+    setFormData((prev) => ({ ...prev, productId: "" }));
     setProductQuery("");
   }
 
@@ -424,85 +426,66 @@ export default function RestocksPage() {
               <div className="grid gap-2">
                 <Label>Product</Label>
 
-                <div className="relative" ref={productBoxRef}>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      className="pl-8 pr-8"
-                      placeholder="Search product..."
-                      value={productQuery}
-                      onFocus={() => setProductDropdownOpen(true)}
-                      onChange={(e) => {
-                        setProductQuery(e.target.value);
-                        setProductDropdownOpen(true);
-                        // typing invalidates any previous exact selection
-                        if (formData.productId) {
-                          setFormData({ ...formData, productId: "" });
-                        }
-                      }}
-                    />
-                    {(productQuery || formData.productId) && (
-                      <button
-                        type="button"
-                        onClick={clearProductSelection}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-
-                  {productDropdownOpen && (
-                    <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="max-h-72 overflow-y-auto py-1">
-                        {filteredProductGroups.length > 0 ? (
-                          filteredProductGroups.map(([label, items]) => (
-                            <div key={label}>
-                              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                {label}
-                              </div>
-                              {items.map((p) => (
-                                <button
-                                  type="button"
-                                  key={p.id}
-                                  onClick={() => selectProduct(p)}
-                                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent ${
-                                    p.id === formData.productId ? "bg-accent" : ""
-                                  }`}
-                                >
-                                  <span>{p.name}</span>
-                                  {typeof p.quantity === "number" && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {p.quantity} in stock
-                                    </span>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          ))
-                        ) : (
-                          <p className="px-3 py-2 text-sm text-muted-foreground">
-                            No products match &quot;{productQuery}&quot;
-                          </p>
-                        )}
-                      </div>
-                      <div className="border-t p-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewProduct((prev) => ({ ...prev, name: productQuery }));
-                            setShowNewProductForm(true);
-                            setProductDropdownOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-primary hover:bg-accent"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add new product{productQuery ? ` "${productQuery}"` : ""}
-                        </button>
-                      </div>
-                    </div>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-8 pr-8"
+                    placeholder="Filter products"
+                    value={productQuery}
+                    onChange={(e) => setProductQuery(e.target.value)}
+                  />
+                  {(productQuery || formData.productId) && (
+                    <button
+                      type="button"
+                      onClick={clearProductSelection}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   )}
                 </div>
+
+                <Select
+                  value={formData.productId || undefined}
+                  onValueChange={(value) => {
+                    const selected = products.find((p) => p.id === value);
+                    if (selected) selectProduct(selected);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredProductGroups.length > 0 ? (
+                      filteredProductGroups.map(([label, items]) => (
+                        <SelectGroup key={label}>
+                          <SelectLabel>{label}</SelectLabel>
+                          {items.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No products match &quot;{productQuery}&quot;
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewProduct((prev) => ({ ...prev, name: productQuery }));
+                    setShowNewProductForm(true);
+                  }}
+                  className="flex items-center gap-2 rounded-sm px-2 py-2 text-left text-sm text-primary hover:bg-accent"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add new product{productQuery ? ` "${productQuery}"` : ""}
+                </button>
 
                 {selectedProduct && (
                   <p className="text-xs text-muted-foreground">
