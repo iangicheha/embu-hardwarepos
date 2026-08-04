@@ -2,6 +2,7 @@ import { Router } from "express";
 import restocksController from "./restocks.controller";
 import {
   createRestockSchema,
+  updateRestockSchema,
   listRestocksQuerySchema
 } from "./restocks.validation";
 import { authenticate } from "../../middleware/auth.middleware";
@@ -26,6 +27,17 @@ router.post(
   authorize(["admin"]),
   validate(createRestockSchema),
   restocksController.createRestock
+);
+router.put(
+  "/:id",
+  authorize(["admin"]),
+  validate(updateRestockSchema),
+  restocksController.updateRestock
+);
+router.delete(
+  "/:id",
+  authorize(["admin"]),
+  restocksController.deleteRestock
 );
 
 export default router;

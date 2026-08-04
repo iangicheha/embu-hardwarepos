@@ -1,12 +1,23 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { PackagePlus, Loader2, Search, Plus, X } from "lucide-react";
+import {
+  PackagePlus,
+  Loader2,
+  Search,
+  Plus,
+  X,
+  MoreVertical,
+  Pencil,
+  Trash2
+} from "lucide-react";
 import {
   getProducts,
   getSuppliers,
   getRestocks,
   createRestock,
+  updateRestock,
+  deleteRestock,
   createProduct,
   getCategories,
   type CreateProductInput
@@ -15,6 +26,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -30,7 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate, toNumber } from "@/lib/utils";
+import { formatCurrency, toNumber } from "@/lib/utils";
 
 export default function RestocksPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -53,6 +70,88 @@ export default function RestocksPage() {
   const [productQuery, setProductQuery] = useState("");
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
   const productBoxRef = useRef<HTMLDivElement | null>(null);
+
+  // --- Restock row edit/delete state ---
+  const [editingRestockId, setEditingRestockId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    quantityAdded: "",
+    cost: "",
+    notes: ""
+  });
+  const [rowActionError, setRowActionError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  function startEditRestock(restock: any) {
+    setRowActionError(null);
+    setEditingRestockId(restock.id);
+    setEditForm({
+      quantityAdded: String(restock.quantityAdded ?? ""),
+      cost: String(toNumber(restock.cost) ?? ""),
+      notes: restock.notes ?? ""
+    });
+  }
+
+  function cancelEditRestock() {
+    setEditingRestockId(null);
+    setRowActionError(null);
+  }
+
+  async function saveEditRestock(id: string) {
+    try {
+      setSavingEdit(true);
+      setRowActionError(null);
+      await updateRestock(id, {
+        quantityAdded: editForm.quantityAdded ? Number(editForm.quantityAdded) : undefined,
+        cost: editForm.cost !== "" ? Number(editForm.cost) : undefined,
+        notes: editForm.notes
+      });
+      const [restocksRes, productsRes] = await Promise.all([
+        getRestocks(1, 100),
+        loadAllProducts()
+      ]);
+      setRestocks(restocksRes.data.restocks || []);
+      setProducts(productsRes);
+      setEditingRestockId(null);
+    } catch (err: any) {
+      setRowActionError(err.message || "Failed to update restock");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleDeleteRestock(id: string) {
+    if (!confirm("Delete this restock? This will also remove the stock it added.")) {
+      return;
+    }
+    try {
+      setDeletingId(id);
+      setRowActionError(null);
+      await deleteRestock(id);
+      const [restocksRes, productsRes] = await Promise.all([
+        getRestocks(1, 100),
+        loadAllProducts()
+      ]);
+      setRestocks(restocksRes.data.restocks || []);
+      setProducts(productsRes);
+    } catch (err: any) {
+      setRowActionError(err.message || "Failed to delete restock");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  // Groups restock history by calendar day so a day's restocks sit
+  // together under one date heading, most recent day first.
+  const restocksByDate = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const r of restocks) {
+      const dateKey = new Date(r.createdAt).toDateString();
+      if (!groups.has(dateKey)) groups.set(dateKey, []);
+      groups.get(dateKey)!.push(r);
+    }
+    return Array.from(groups.entries());
+  }, [restocks]);
 
   // --- Add new product (inline) state ---
   const [showNewProductForm, setShowNewProductForm] = useState(false);
@@ -560,33 +659,145 @@ export default function RestocksPage() {
             <CardHeader>
               <CardTitle className="text-base">Restock History</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>By</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {restocks.map((restock) => (
-                    <TableRow key={restock.id}>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(restock.createdAt)}
-                      </TableCell>
-                      <TableCell className="font-medium">{restock.product?.name || restock.productName}</TableCell>
-                      <TableCell>{restock.supplier?.supplierName || restock.supplierName}</TableCell>
-                      <TableCell>+{restock.quantityAdded}</TableCell>
-                      <TableCell>{formatCurrency(toNumber(restock.cost))}</TableCell>
-                      <TableCell>{restock.receivedBy?.fullName ?? restock.createdBy ?? "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="space-y-6">
+              {rowActionError && (
+                <div className="rounded-lg bg-destructive/10 p-3 text-destructive text-sm">
+                  {rowActionError}
+                </div>
+              )}
+
+              {restocksByDate.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No restocks recorded yet.</p>
+              ) : (
+                restocksByDate.map(([dateKey, dayRestocks]) => (
+                  <div key={dateKey} className="space-y-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground">
+                      {new Date(dateKey).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                      })}
+                    </h3>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Supplier</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Cost</TableHead>
+                          <TableHead>By</TableHead>
+                          <TableHead className="w-10" />
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {dayRestocks.map((restock) =>
+                          editingRestockId === restock.id ? (
+                            <TableRow key={restock.id}>
+                              <TableCell className="font-medium">
+                                {restock.product?.name || restock.productName}
+                              </TableCell>
+                              <TableCell>
+                                {restock.supplier?.supplierName || restock.supplierName}
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  className="h-8 w-20"
+                                  value={editForm.quantityAdded}
+                                  onChange={(e) =>
+                                    setEditForm({ ...editForm, quantityAdded: e.target.value })
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  className="h-8 w-24"
+                                  value={editForm.cost}
+                                  onChange={(e) =>
+                                    setEditForm({ ...editForm, cost: e.target.value })
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>{restock.receivedBy?.fullName ?? "—"}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2"
+                                    disabled={savingEdit}
+                                    onClick={() => saveEditRestock(restock.id)}
+                                  >
+                                    {savingEdit ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      "Save"
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2"
+                                    onClick={cancelEditRestock}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            <TableRow key={restock.id}>
+                              <TableCell className="font-medium">
+                                {restock.product?.name || restock.productName}
+                              </TableCell>
+                              <TableCell>
+                                {restock.supplier?.supplierName || restock.supplierName}
+                              </TableCell>
+                              <TableCell>+{restock.quantityAdded}</TableCell>
+                              <TableCell>{formatCurrency(toNumber(restock.cost))}</TableCell>
+                              <TableCell>{restock.receivedBy?.fullName ?? "—"}</TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      disabled={deletingId === restock.id}
+                                    >
+                                      {deletingId === restock.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <MoreVertical className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => startEditRestock(restock)}>
+                                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => handleDeleteRestock(restock.id)}
+                                    >
+                                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>

@@ -310,6 +310,27 @@ export async function createRestock(data: {
   });
 }
 
+export async function updateRestock(
+  id: string,
+  data: {
+    supplierId?: string;
+    quantityAdded?: number;
+    cost?: number;
+    notes?: string;
+  }
+) {
+  return request<{ data: Restock }>(`/restocks/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data)
+  });
+}
+
+export async function deleteRestock(id: string) {
+  return request<{ data: null }>(`/restocks/${id}`, {
+    method: "DELETE"
+  });
+}
+
 // --- Categories ---
 export async function getCategories(
   page = 1,

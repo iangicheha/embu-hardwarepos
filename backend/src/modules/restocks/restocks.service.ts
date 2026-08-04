@@ -14,6 +14,13 @@ type CreateRestockInput = {
   updateBuyingPrice?: boolean;
 };
 
+type UpdateRestockInput = {
+  supplierId?: string;
+  quantityAdded?: number;
+  cost?: number;
+  notes?: string;
+};
+
 class RestocksService {
   async createRestock(payload: CreateRestockInput, userId: string) {
     if (payload.quantityAdded <= 0) {
@@ -76,6 +83,109 @@ class RestocksService {
       .catch((err) => logger.error("notifyRestock failed", err));
 
     return restock.created;
+  }
+
+  async updateRestock(id: string, payload: UpdateRestockInput, userId: string) {
+    if (payload.quantityAdded !== undefined && payload.quantityAdded <= 0) {
+      throw new AppError("quantityAdded must be positive", 400);
+    }
+
+    if (payload.supplierId) {
+      const supplier = await prisma.supplier.findUnique({
+        where: { id: payload.supplierId },
+        select: { id: true }
+      });
+      if (!supplier) throw new AppError("Supplier not found", 404);
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const existing = await tx.restock.findUnique({
+        where: { id },
+        include: { product: { select: { id: true, name: true, quantity: true } } }
+      });
+      if (!existing) throw new AppError("Restock not found", 404);
+
+      // Lock the product row before adjusting its quantity, same as create.
+      await tx.$queryRaw`SELECT id FROM products WHERE id = ${existing.productId} FOR UPDATE`;
+
+      // If quantityAdded is changing, the product's stock needs to move by
+      // the difference, not by the new value outright — e.g. correcting a
+      // restock from 50 to 40 should remove 10 from stock, not set it to 40.
+      if (payload.quantityAdded !== undefined) {
+        const currentQuantityAdded = Number(existing.quantityAdded);
+        const currentProductQuantity = Number(existing.product.quantity);
+        const delta = payload.quantityAdded - currentQuantityAdded;
+        const newQuantity = currentProductQuantity + delta;
+        if (newQuantity < 0) {
+          throw new AppError(
+            "Cannot reduce this restock below the amount already sold/used from stock",
+            400
+          );
+        }
+        await tx.product.update({
+          where: { id: existing.productId },
+          data: { quantity: { increment: delta } }
+        });
+      }
+
+      const result = await tx.restock.update({
+        where: { id },
+        data: {
+          supplierId: payload.supplierId,
+          quantityAdded: payload.quantityAdded,
+          cost: payload.cost,
+          notes: payload.notes
+        },
+        include: { product: true, supplier: true, receivedBy: true }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: "RESTOCK_UPDATED",
+          details: `Updated restock ${id} for ${existing.product.name}`
+        }
+      });
+
+      return result;
+    });
+
+    return updated;
+  }
+
+  async deleteRestock(id: string, userId: string) {
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.restock.findUnique({
+        where: { id },
+        include: { product: { select: { id: true, name: true, quantity: true } } }
+      });
+      if (!existing) throw new AppError("Restock not found", 404);
+
+      await tx.$queryRaw`SELECT id FROM products WHERE id = ${existing.productId} FOR UPDATE`;
+
+      const newQuantity = Number(existing.product.quantity) - Number(existing.quantityAdded);
+      if (newQuantity < 0) {
+        throw new AppError(
+          "Cannot delete this restock — some of the stock it added has already been sold/used",
+          400
+        );
+      }
+
+      await tx.product.update({
+        where: { id: existing.productId },
+        data: { quantity: { decrement: existing.quantityAdded } }
+      });
+
+      await tx.restock.delete({ where: { id } });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: "RESTOCK_DELETED",
+          details: `Deleted restock of ${existing.quantityAdded} units of ${existing.product.name}`
+        }
+      });
+    });
   }
 
   async getRestocks(page = 1, limit = 20) {

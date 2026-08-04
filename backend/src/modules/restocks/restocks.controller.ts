@@ -35,6 +35,27 @@ class RestocksController {
       successResponse(res, result, "Restock retrieved");
     }
   );
+
+  updateRestock = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const result = await restocksService.updateRestock(
+        getParam(req.params.id),
+        req.body,
+        req.user!.userId
+      );
+      successResponse(res, result, "Restock updated");
+    }
+  );
+
+  deleteRestock = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      await restocksService.deleteRestock(
+        getParam(req.params.id),
+        req.user!.userId
+      );
+      successResponse(res, null, "Restock deleted");
+    }
+  );
 }
 
 export default new RestocksController();
