@@ -145,8 +145,9 @@ class OrdersService {
     const subtotal = resolvedItems.reduce((sum, item) => sum + item.total, 0);
 
     const discount = payload.discount ? Number(payload.discount) : 0;
-    const taxRate = await this.getTaxRate();
-    const totals = calculateTotals(subtotal, discount, taxRate);
+    // Tax intentionally not applied — selling prices are treated as final,
+    // so totalWithTax should equal subtotal - discount.
+    const totals = calculateTotals(subtotal, discount, 0);
 
     const orderNumber = await this.nextOrderNumber();
     const receiptNumber = await this.nextReceiptNumber();
