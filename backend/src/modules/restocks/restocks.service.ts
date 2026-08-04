@@ -112,9 +112,9 @@ class RestocksService {
       // the difference, not by the new value outright — e.g. correcting a
       // restock from 50 to 40 should remove 10 from stock, not set it to 40.
       if (payload.quantityAdded !== undefined) {
-        const currentQuantityAdded = Number(existing.quantityAdded);
-        const currentProductQuantity = Number(existing.product.quantity);
-        const delta = payload.quantityAdded - currentQuantityAdded;
+        const currentQuantityAdded = Number(existing.quantityAdded.toString());
+        const currentProductQuantity = Number(existing.product.quantity.toString());
+        const delta = Number(payload.quantityAdded) - currentQuantityAdded;
         const newQuantity = currentProductQuantity + delta;
         if (newQuantity < 0) {
           throw new AppError(
@@ -163,7 +163,7 @@ class RestocksService {
 
       await tx.$queryRaw`SELECT id FROM products WHERE id = ${existing.productId} FOR UPDATE`;
 
-      const newQuantity = Number(existing.product.quantity) - Number(existing.quantityAdded);
+      const newQuantity = Number(existing.product.quantity.toString()) - Number(existing.quantityAdded.toString());
       if (newQuantity < 0) {
         throw new AppError(
           "Cannot delete this restock — some of the stock it added has already been sold/used",
