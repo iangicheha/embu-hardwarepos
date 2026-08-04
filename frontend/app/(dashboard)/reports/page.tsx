@@ -82,12 +82,25 @@ export default function ReportsPage() {
   // Nothing renders below the filters until the manager actually asks for it.
   const [showTrends, setShowTrends] = useState(false);
 
+  // Bumped whenever a sale/restock elsewhere fires "dashboard-refresh", so
+  // this page's data reloads immediately instead of waiting for the next
+  // date-filter change or a manual page reload.
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useEffect(() => {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
     setDateFrom(startDate.toISOString().split("T")[0]);
     setDateTo(endDate.toISOString().split("T")[0]);
+  }, []);
+
+  useEffect(() => {
+    function handleRefresh() {
+      setRefreshKey((k) => k + 1);
+    }
+    window.addEventListener("dashboard-refresh", handleRefresh);
+    return () => window.removeEventListener("dashboard-refresh", handleRefresh);
   }, []);
 
   useEffect(() => {
@@ -133,7 +146,7 @@ export default function ReportsPage() {
       }
     }
     loadData();
-  }, [dateFrom, dateTo]);
+  }, [dateFrom, dateTo, refreshKey]);
 
   // Filters actually apply now — supplier/product/payment method narrow the
   // order list that everything else (totals, charts, products-sold) is
