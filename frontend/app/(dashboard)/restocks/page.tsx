@@ -8,6 +8,7 @@ import {
   getRestocks,
   createRestock,
   createProduct,
+  getCategories,
   type CreateProductInput
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export default function RestocksPage() {
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [restocks, setRestocks] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     productId: "",
@@ -64,6 +66,7 @@ export default function RestocksPage() {
     reorderLevel: "",
     baseUnit: "pcs",
     sellingPrice: "",
+    categoryId: "",
   });
 
   // simple auto-generated product code from the name, editable by the user
@@ -77,19 +80,40 @@ export default function RestocksPage() {
     return slug ? `${slug}-${suffix}` : `PROD-${suffix}`;
   }
 
+  // Fetches every page of products, not just the first, so the search
+  // dropdown always has the full catalogue to filter against.
+  async function loadAllProducts() {
+    const first = await getProducts(1, 100);
+    const products = [...(first.data.products || [])];
+    const totalPages = first.data.pagination?.totalPages ?? 1;
+
+    if (totalPages > 1) {
+      const rest = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) => getProducts(i + 2, 100))
+      );
+      for (const res of rest) {
+        products.push(...(res.data.products || []));
+      }
+    }
+
+    return products;
+  }
+
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
-        const [productsRes, suppliersRes, restocksRes] = await Promise.all([
-          getProducts(1, 100),
+        const [allProducts, suppliersRes, restocksRes, categoriesRes] = await Promise.all([
+          loadAllProducts(),
           getSuppliers(1, 100),
-          getRestocks(1, 100)
+          getRestocks(1, 100),
+          getCategories(1, 100)
         ]);
 
-        setProducts(productsRes.data.products || []);
+        setProducts(allProducts);
         setSuppliers(suppliersRes.data.suppliers || []);
         setRestocks(restocksRes.data.restocks || []);
+        setCategories(categoriesRes.data.categories || []);
       } catch (err) {
         setError("Failed to load data");
         console.error(err);
@@ -155,6 +179,7 @@ export default function RestocksPage() {
         quantity: newProduct.quantity ? Number(newProduct.quantity) : 0,
         reorderLevel: newProduct.reorderLevel ? Number(newProduct.reorderLevel) : 0,
         baseUnit,
+        categoryId: newProduct.categoryId || undefined,
         sellingUnits: [
           {
             unit: baseUnit,
@@ -179,7 +204,8 @@ export default function RestocksPage() {
         quantity: "",
         reorderLevel: "",
         baseUnit: "pcs",
-        sellingPrice: ""
+        sellingPrice: "",
+        categoryId: ""
       });
     } catch (err: any) {
       setNewProductError(err.message || "Failed to create product");
@@ -436,6 +462,26 @@ export default function RestocksPage() {
                       }
                       placeholder="e.g. pcs, kg, roll"
                     />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs">Category</Label>
+                    <Select
+                      value={newProduct.categoryId}
+                      onValueChange={(v) =>
+                        setNewProduct({ ...newProduct, categoryId: v })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button
