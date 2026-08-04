@@ -237,11 +237,55 @@ export default function RestocksPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredProducts = useMemo(() => {
+  const groupedProductsForSelection = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    const seen = new Set<string>();
+
+    const addProduct = (product: any, label: string) => {
+      if (!product?.id || seen.has(product.id)) return;
+      seen.add(product.id);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label)!.push(product);
+    };
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+    const sortedRestocks = [...restocks].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    for (const restock of sortedRestocks) {
+      const product = restock.product || products.find((p) => p.id === restock.productId);
+      if (!product) continue;
+
+      const createdAt = restock.createdAt ? new Date(restock.createdAt) : null;
+      let label = "Earlier";
+      if (createdAt && createdAt >= todayStart) label = "Today";
+      else if (createdAt && createdAt >= yesterdayStart) label = "Yesterday";
+
+      addProduct(product, label);
+    }
+
+    const unlistedProducts = products.filter((product) => !seen.has(product.id));
+    if (unlistedProducts.length > 0) {
+      addProduct(unlistedProducts[0], "Other products");
+      unlistedProducts.slice(1).forEach((product) => addProduct(product, "Other products"));
+    }
+
+    return Array.from(groups.entries()).filter(([, items]) => items.length > 0);
+  }, [products, restocks]);
+
+  const filteredProductGroups = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) => p.name?.toLowerCase().includes(q));
-  }, [products, productQuery]);
+    if (!q) return groupedProductsForSelection;
+
+    return groupedProductsForSelection
+      .map(([label, items]) => [label, items.filter((p) => p.name?.toLowerCase().includes(q))])
+      .filter(([, items]) => items.length > 0) as Array<[string, any[]]>;
+  }, [groupedProductsForSelection, productQuery]);
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === formData.productId) || null,
@@ -410,24 +454,31 @@ export default function RestocksPage() {
 
                   {productDropdownOpen && (
                     <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="max-h-60 overflow-y-auto py-1">
-                        {filteredProducts.length > 0 ? (
-                          filteredProducts.map((p) => (
-                            <button
-                              type="button"
-                              key={p.id}
-                              onClick={() => selectProduct(p)}
-                              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent ${
-                                p.id === formData.productId ? "bg-accent" : ""
-                              }`}
-                            >
-                              <span>{p.name}</span>
-                              {typeof p.quantity === "number" && (
-                                <span className="text-xs text-muted-foreground">
-                                  {p.quantity} in stock
-                                </span>
-                              )}
-                            </button>
+                      <div className="max-h-72 overflow-y-auto py-1">
+                        {filteredProductGroups.length > 0 ? (
+                          filteredProductGroups.map(([label, items]) => (
+                            <div key={label}>
+                              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                {label}
+                              </div>
+                              {items.map((p) => (
+                                <button
+                                  type="button"
+                                  key={p.id}
+                                  onClick={() => selectProduct(p)}
+                                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent ${
+                                    p.id === formData.productId ? "bg-accent" : ""
+                                  }`}
+                                >
+                                  <span>{p.name}</span>
+                                  {typeof p.quantity === "number" && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {p.quantity} in stock
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           ))
                         ) : (
                           <p className="px-3 py-2 text-sm text-muted-foreground">
