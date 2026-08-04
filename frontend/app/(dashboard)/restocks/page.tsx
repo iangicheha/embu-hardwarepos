@@ -7,7 +7,6 @@ import {
   Search,
   Plus,
   X,
-  MoreVertical,
   Pencil,
   Trash2
 } from "lucide-react";
@@ -26,12 +25,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -143,9 +136,10 @@ export default function RestocksPage() {
     }
   }
 
-  // Restock History filter — narrows the list to one product instead of
-  // scrolling every day's entries to find it.
+  // Restock History filters — narrow the list to one product and/or one
+  // calendar day instead of scrolling every entry to find it.
   const [historyProductFilter, setHistoryProductFilter] = useState<string>("all");
+  const [historyDateFilter, setHistoryDateFilter] = useState<string>("");
 
   // Products that actually have restock history, sorted alphabetically —
   // the filter dropdown only offers products worth filtering by.
@@ -164,10 +158,18 @@ export default function RestocksPage() {
   // Groups restock history by calendar day so a day's restocks sit
   // together under one date heading, most recent day first.
   const restocksByDate = useMemo(() => {
-    const filtered =
-      historyProductFilter === "all"
-        ? restocks
-        : restocks.filter((r) => (r.productId ?? r.product?.id) === historyProductFilter);
+    const filtered = restocks.filter((r) => {
+      if (historyProductFilter !== "all" && (r.productId ?? r.product?.id) !== historyProductFilter) {
+        return false;
+      }
+      if (historyDateFilter) {
+        // toLocaleDateString("en-CA") gives YYYY-MM-DD in local time, which
+        // matches the <input type="date"> value we're comparing against.
+        const rDate = new Date(r.createdAt).toLocaleDateString("en-CA");
+        if (rDate !== historyDateFilter) return false;
+      }
+      return true;
+    });
     const groups = new Map<string, any[]>();
     for (const r of filtered) {
       const dateKey = new Date(r.createdAt).toDateString();
@@ -175,7 +177,7 @@ export default function RestocksPage() {
       groups.get(dateKey)!.push(r);
     }
     return Array.from(groups.entries());
-  }, [restocks, historyProductFilter]);
+  }, [restocks, historyProductFilter, historyDateFilter]);
 
   // --- Add new product (inline) state ---
   const [showNewProductForm, setShowNewProductForm] = useState(false);
@@ -714,20 +716,39 @@ export default function RestocksPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
               <CardTitle className="text-base">Restock History</CardTitle>
-              <div className="w-56">
-                <Select value={historyProductFilter} onValueChange={setHistoryProductFilter}>
-                  <SelectTrigger className="h-8">
-                    <SelectValue placeholder="Filter by product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All products</SelectItem>
-                    {productsWithRestockHistory.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  className="h-8 w-40"
+                  value={historyDateFilter}
+                  onChange={(e) => setHistoryDateFilter(e.target.value)}
+                />
+                {historyDateFilter && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setHistoryDateFilter("")}
+                    title="Clear date filter"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <div className="w-56">
+                  <Select value={historyProductFilter} onValueChange={setHistoryProductFilter}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Filter by product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All products</SelectItem>
+                      {productsWithRestockHistory.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -739,9 +760,9 @@ export default function RestocksPage() {
 
               {restocksByDate.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  {historyProductFilter === "all"
+                  {historyProductFilter === "all" && !historyDateFilter
                     ? "No restocks recorded yet."
-                    : "No restocks recorded for this product."}
+                    : "No restocks recorded for the selected filters."}
                 </p>
               ) : (
                 restocksByDate.map(([dateKey, dayRestocks]) => (
@@ -835,35 +856,31 @@ export default function RestocksPage() {
                               <TableCell>{formatCurrency(toNumber(restock.cost))}</TableCell>
                               <TableCell>{restock.receivedBy?.fullName ?? "—"}</TableCell>
                               <TableCell>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      disabled={deletingId === restock.id}
-                                    >
-                                      {deletingId === restock.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <MoreVertical className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => startEditRestock(restock)}>
-                                      <Pencil className="mr-2 h-3.5 w-3.5" />
-                                      Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      className="text-destructive focus:text-destructive"
-                                      onClick={() => handleDeleteRestock(restock.id)}
-                                    >
-                                      <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    title="Edit"
+                                    onClick={() => startEditRestock(restock)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-destructive hover:text-destructive"
+                                    title="Delete"
+                                    disabled={deletingId === restock.id}
+                                    onClick={() => handleDeleteRestock(restock.id)}
+                                  >
+                                    {deletingId === restock.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    )}
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           )
