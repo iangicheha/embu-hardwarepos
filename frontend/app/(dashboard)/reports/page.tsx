@@ -13,6 +13,8 @@ import {
   BarChart3,
   Receipt,
   PackagePlus,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
 import {
@@ -86,6 +88,31 @@ export default function ReportsPage() {
   // this page's data reloads immediately instead of waiting for the next
   // date-filter change or a manual page reload.
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Which date groups are expanded, for the Orders and Restocks tables
+  // below (kept separate so opening a date in one doesn't affect the
+  // other). Collapsed by default — otherwise every order/restock ever
+  // made in the period renders at once and the page becomes unusable.
+  const [expandedOrderDates, setExpandedOrderDates] = useState<Set<string>>(new Set());
+  const [expandedRestockDates, setExpandedRestockDates] = useState<Set<string>>(new Set());
+
+  function toggleOrderDate(dateKey: string) {
+    setExpandedOrderDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateKey)) next.delete(dateKey);
+      else next.add(dateKey);
+      return next;
+    });
+  }
+
+  function toggleRestockDate(dateKey: string) {
+    setExpandedRestockDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateKey)) next.delete(dateKey);
+      else next.add(dateKey);
+      return next;
+    });
+  }
 
   useEffect(() => {
     const endDate = new Date();
@@ -209,6 +236,35 @@ export default function ReportsPage() {
     () => products.reduce((sum, p) => sum + toNumber(p.quantity) * toNumber(p.sellingPrice), 0),
     [products]
   );
+
+  // Orders grouped by calendar day, most recent day first, so the table
+  // shows one collapsible row per date instead of every order at once.
+  const ordersByDate = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const o of visibleOrders) {
+      if (!o.createdAt) continue;
+      const dateKey = new Date(o.createdAt).toDateString();
+      if (!groups.has(dateKey)) groups.set(dateKey, []);
+      groups.get(dateKey)!.push(o);
+    }
+    return Array.from(groups.entries()).sort(
+      ([a], [b]) => new Date(b).getTime() - new Date(a).getTime()
+    );
+  }, [visibleOrders]);
+
+  // Same grouping for restocks.
+  const restocksByDate = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const r of visibleRestocks) {
+      if (!r.createdAt) continue;
+      const dateKey = new Date(r.createdAt).toDateString();
+      if (!groups.has(dateKey)) groups.set(dateKey, []);
+      groups.get(dateKey)!.push(r);
+    }
+    return Array.from(groups.entries()).sort(
+      ([a], [b]) => new Date(b).getTime() - new Date(a).getTime()
+    );
+  }, [visibleRestocks]);
 
   // Chart data built directly from the SAME filtered/report-type-scoped data
   // as the tables above, so what the chart shows always matches what's on
@@ -603,67 +659,108 @@ export default function ReportsPage() {
           </div>
           <p className="text-sm text-muted-foreground">Sales made in the filtered period.</p>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order No.</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleOrders.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
-                    No orders match these filters.
-                  </TableCell>
-                </TableRow>
-              )}
-              {visibleOrders.map((order) => {
-                const items = order.items ?? [];
-                const totalQty = items.reduce(
-                  (s: number, it: any) => s + toNumber(it.quantity),
-                  0
-                );
-                const itemsSummary = items
-                  .map((it: any) => {
-                    const name = it.product?.name ?? "Unknown";
-                    const unit = it.productUnit?.unit;
-                    const qty = toNumber(it.quantity);
-                    return `${qty}${unit ? " " + unit : "x"} ${name}`;
-                  })
-                  .join(", ");
-                return (
-                  <TableRow
-                    key={order.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      setOrderNumberInput(order.orderNumber ?? "");
-                      setLookedUpOrder(order);
-                      setLookupError(null);
-                    }}
+        <CardContent className="space-y-2">
+          {ordersByDate.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">
+              No orders match these filters.
+            </p>
+          ) : (
+            ordersByDate.map(([dateKey, dayOrders]) => {
+              const isOpen = expandedOrderDates.has(dateKey);
+              const dayTotal = dayOrders.reduce(
+                (sum, o) => sum + toNumber(o.totalAmount),
+                0
+              );
+              return (
+                <div key={dateKey} className="rounded-lg border">
+                  <button
+                    type="button"
+                    onClick={() => toggleOrderDate(dateKey)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-muted/50"
                   >
-                    <TableCell className="font-medium text-sm">{order.orderNumber}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
-                    </TableCell>
-                    <TableCell className="text-sm">{order.paymentMethod ?? "—"}</TableCell>
-                    <TableCell className="text-sm max-w-xs truncate" title={itemsSummary}>
-                      {itemsSummary || "—"}
-                    </TableCell>
-                    <TableCell className="text-right text-sm">{totalQty}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(order.totalAmount)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                    {isOpen ? (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {new Date(dateKey).toLocaleDateString(undefined, {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <Badge variant="secondary">
+                      {dayOrders.length} order{dayOrders.length === 1 ? "" : "s"}
+                    </Badge>
+                    <span className="ml-auto text-sm font-medium">
+                      {formatCurrency(dayTotal)}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Order No.</TableHead>
+                          <TableHead>Payment</TableHead>
+                          <TableHead>Items</TableHead>
+                          <TableHead className="text-right">Qty</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {dayOrders.map((order) => {
+                          const items = order.items ?? [];
+                          const totalQty = items.reduce(
+                            (s: number, it: any) => s + toNumber(it.quantity),
+                            0
+                          );
+                          const itemsSummary = items
+                            .map((it: any) => {
+                              const name = it.product?.name ?? "Unknown";
+                              const unit = it.productUnit?.unit;
+                              const qty = toNumber(it.quantity);
+                              return `${qty}${unit ? " " + unit : "x"} ${name}`;
+                            })
+                            .join(", ");
+                          return (
+                            <TableRow
+                              key={order.id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => {
+                                setOrderNumberInput(order.orderNumber ?? "");
+                                setLookedUpOrder(order);
+                                setLookupError(null);
+                              }}
+                            >
+                              <TableCell className="font-medium text-sm">
+                                {order.orderNumber}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {order.paymentMethod ?? "—"}
+                              </TableCell>
+                              <TableCell
+                                className="text-sm max-w-xs truncate"
+                                title={itemsSummary}
+                              >
+                                {itemsSummary || "—"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm">{totalQty}</TableCell>
+                              <TableCell className="text-right font-medium">
+                                {formatCurrency(order.totalAmount)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
       )}
@@ -684,42 +781,77 @@ export default function ReportsPage() {
           </div>
           <p className="text-sm text-muted-foreground">Stock received from suppliers in the filtered period.</p>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Qty Added</TableHead>
-                <TableHead className="text-right">Cost</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleRestocks.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
-                    No restocks in this period.
-                  </TableCell>
-                </TableRow>
-              )}
-              {visibleRestocks.map((restock) => (
-                <TableRow key={restock.id}>
-                  <TableCell className="font-medium text-sm">{restock.product?.name ?? "Product"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {restock.supplier?.supplierName ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {restock.createdAt ? new Date(restock.createdAt).toLocaleDateString() : "—"}
-                  </TableCell>
-                  <TableCell className="text-right text-sm text-success">
-                    +{restock.quantityAdded}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(restock.cost)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent className="space-y-2">
+          {restocksByDate.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">
+              No restocks in this period.
+            </p>
+          ) : (
+            restocksByDate.map(([dateKey, dayRestocks]) => {
+              const isOpen = expandedRestockDates.has(dateKey);
+              const dayCost = dayRestocks.reduce((sum, r) => sum + toNumber(r.cost), 0);
+              return (
+                <div key={dateKey} className="rounded-lg border">
+                  <button
+                    type="button"
+                    onClick={() => toggleRestockDate(dateKey)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-muted/50"
+                  >
+                    {isOpen ? (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {new Date(dateKey).toLocaleDateString(undefined, {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <Badge variant="secondary">
+                      {dayRestocks.length} restock{dayRestocks.length === 1 ? "" : "s"}
+                    </Badge>
+                    <span className="ml-auto text-sm font-medium">
+                      {formatCurrency(dayCost)}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Supplier</TableHead>
+                          <TableHead className="text-right">Qty Added</TableHead>
+                          <TableHead className="text-right">Cost</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {dayRestocks.map((restock) => (
+                          <TableRow key={restock.id}>
+                            <TableCell className="font-medium text-sm">
+                              {restock.product?.name ?? "Product"}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {restock.supplier?.supplierName ?? "—"}
+                            </TableCell>
+                            <TableCell className="text-right text-sm text-success">
+                              +{restock.quantityAdded}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(restock.cost)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
       )}
