@@ -18,6 +18,15 @@ export const createOrderSchema = z
       "CREDIT"
     ]),
     discount: z.number().min(0).default(0),
+    // Lets the cashier back-date an order (e.g. entering a paper sale from
+    // earlier). Optional — if omitted, the service falls back to "now".
+    orderDate: z
+      .string()
+      .datetime({ message: "orderDate must be an ISO date string" })
+      .refine((d) => new Date(d).getTime() <= Date.now(), {
+        message: "orderDate cannot be in the future"
+      })
+      .optional(),
     items: z
       .array(
         z.object({

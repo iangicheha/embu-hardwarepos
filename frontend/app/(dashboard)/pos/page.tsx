@@ -115,6 +115,17 @@ export default function POSPage() {
   const [error, setError] = useState<string | null>(null);
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
+  // Order date — defaults to today, but the cashier can back-date an order
+  // (e.g. entering a paper sale from earlier in the week). Stored as the
+  // yyyy-mm-dd string an <input type="date"> works with natively.
+  const [orderDate, setOrderDate] = useState<string>(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  });
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -255,7 +266,10 @@ export default function POSPage() {
         })),
         paymentMethod,
         discount,
-        customerName: "Walk-in Customer"
+        customerName: "Walk-in Customer",
+        // Cashier-entered order date (not "now") — sent as an ISO string
+        // so the backend can store it as this order's createdAt.
+        orderDate: new Date(`${orderDate}T00:00:00`).toISOString()
       };
 
       const result = await createOrder(orderData);
@@ -275,6 +289,10 @@ export default function POSPage() {
         setDiscount(0);
         setSaleComplete(false);
         setCompletedOrderId(null);
+        const d = new Date();
+        setOrderDate(
+          `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        );
       }, 5000);
     } catch (err: any) {
       setError(err.message || "Failed to complete sale");
@@ -555,6 +573,20 @@ export default function POSPage() {
                     <span>Grand Total</span>
                     <span className="text-primary">{formatCurrency(grandTotal)}</span>
                   </div>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-xs font-medium">Order Date</p>
+                  <Input
+                    type="date"
+                    value={orderDate}
+                    onChange={(e) => setOrderDate(e.target.value)}
+                    max={(() => {
+                      const d = new Date();
+                      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                    })()}
+                    className="h-8 text-sm"
+                  />
                 </div>
 
                 <div>

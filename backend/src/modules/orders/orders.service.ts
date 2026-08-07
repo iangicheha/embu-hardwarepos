@@ -26,6 +26,7 @@ type RawOrderInput = {
   customerEmail?: string;
   paymentMethod: "CASH" | "MPESA" | "BANK_TRANSFER" | "CREDIT";
   discount?: number;
+  orderDate?: string; // ISO string; cashier-entered, defaults to now if omitted
 };
 
 // Resolved per line: the product + the specific selling unit picked,
@@ -187,6 +188,10 @@ class OrdersService {
           discount: totals.discount,
           status: "COMPLETED",
           createdById: userId,
+          // Only override createdAt when the cashier actually entered a
+          // date — otherwise let Prisma's schema default (now()) apply,
+          // so ordinary same-day sales are untouched by this feature.
+          ...(payload.orderDate ? { createdAt: new Date(payload.orderDate) } : {}),
           items: {
             create: resolvedItems.map((item) => ({
               productId: item.productId,
