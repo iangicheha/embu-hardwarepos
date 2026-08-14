@@ -291,6 +291,40 @@ class OrdersService {
     return order;
   }
 
+  // Corrects which day a completed order is attributed to (e.g. it was
+  // logged under the wrong date). Intentionally narrow: only createdAt
+  // moves, nothing about the sale itself — items, totals, stock already
+  // deducted — is touched.
+  async updateOrderDate(id: string, orderDate: string, userId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id },
+      select: { id: true, orderNumber: true, createdAt: true }
+    });
+    if (!order) throw new AppError("Order not found", 404);
+
+    const newDate = new Date(orderDate);
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.update({
+        where: { id },
+        data: { createdAt: newDate },
+        include: orderInclude
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: "ORDER_DATE_UPDATED",
+          details: `Order ${order.orderNumber} date changed from ${order.createdAt.toISOString()} to ${newDate.toISOString()}`
+        }
+      });
+
+      return result;
+    });
+
+    return updated;
+  }
+
   // Restores stock in baseUnit terms — needs each item's conversionToBase,
   // so productUnit must be included (a plain OrderItem only has the sold
   // quantity, e.g. "3 bags", not how much baseUnit stock that represents).

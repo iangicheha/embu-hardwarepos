@@ -268,6 +268,13 @@ export async function cancelOrder(id: string) {
   });
 }
 
+export async function updateOrderDate(id: string, orderDate: string) {
+  return request<{ data: Order }>(`/orders/${id}/date`, {
+    method: "PATCH",
+    body: JSON.stringify({ orderDate })
+  });
+}
+
 export async function downloadReceipt(id: string) {
   const token = getAccessToken();
   const response = await fetch(
@@ -307,27 +314,6 @@ export async function createRestock(data: {
   return request<{ data: Restock }>("/restocks", {
     method: "POST",
     body: JSON.stringify(data)
-  });
-}
-
-export async function updateRestock(
-  id: string,
-  data: {
-    supplierId?: string;
-    quantityAdded?: number;
-    cost?: number;
-    notes?: string;
-  }
-) {
-  return request<{ data: Restock }>(`/restocks/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data)
-  });
-}
-
-export async function deleteRestock(id: string) {
-  return request<{ data: null }>(`/restocks/${id}`, {
-    method: "DELETE"
   });
 }
 

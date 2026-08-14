@@ -15,6 +15,9 @@ import {
   PackagePlus,
   ChevronDown,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
 import {
@@ -52,7 +55,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, getRestocks } from "@/lib/api";
+import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, getRestocks, updateOrderDate } from "@/lib/api";
 import { formatCurrency, toNumber } from "@/lib/utils";
 
 const PIE_COLORS = ["#dc2626", "#16a34a", "#f59e0b", "#2563eb"];
@@ -95,6 +98,44 @@ export default function ReportsPage() {
   // made in the period renders at once and the page becomes unusable.
   const [expandedOrderDates, setExpandedOrderDates] = useState<Set<string>>(new Set());
   const [expandedRestockDates, setExpandedRestockDates] = useState<Set<string>>(new Set());
+
+  // Inline order-date correction (pencil icon per row).
+  const [editingOrderDateId, setEditingOrderDateId] = useState<string | null>(null);
+  const [editOrderDateValue, setEditOrderDateValue] = useState("");
+  const [savingOrderDate, setSavingOrderDate] = useState(false);
+  const [orderDateError, setOrderDateError] = useState<string | null>(null);
+
+  function toIsoDateInputValue(date: string | Date) {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function startEditOrderDate(order: any) {
+    setOrderDateError(null);
+    setEditingOrderDateId(order.id);
+    setEditOrderDateValue(toIsoDateInputValue(order.createdAt));
+  }
+
+  function cancelEditOrderDate() {
+    setEditingOrderDateId(null);
+    setOrderDateError(null);
+  }
+
+  async function saveOrderDate(orderId: string) {
+    try {
+      setSavingOrderDate(true);
+      setOrderDateError(null);
+      await updateOrderDate(orderId, new Date(`${editOrderDateValue}T00:00:00`).toISOString());
+      setEditingOrderDateId(null);
+      // Reuses the same refresh path the "sale completed" event already
+      // triggers elsewhere, so the order re-sorts into its new date group.
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      setOrderDateError(err.message || "Failed to update order date");
+    } finally {
+      setSavingOrderDate(false);
+    }
+  }
 
   function toggleOrderDate(dateKey: string) {
     setExpandedOrderDates((prev) => {
@@ -717,14 +758,6 @@ export default function ReportsPage() {
                             (s: number, it: any) => s + toNumber(it.quantity),
                             0
                           );
-                          const itemsSummary = items
-                            .map((it: any) => {
-                              const name = it.product?.name ?? "Unknown";
-                              const unit = it.productUnit?.unit;
-                              const qty = toNumber(it.quantity);
-                              return `${qty}${unit ? " " + unit : "x"} ${name}`;
-                            })
-                            .join(", ");
                           return (
                             <TableRow
                               key={order.id}
@@ -735,20 +768,90 @@ export default function ReportsPage() {
                                 setLookupError(null);
                               }}
                             >
-                              <TableCell className="font-medium text-sm">
-                                {order.orderNumber}
+                              <TableCell className="font-medium text-sm align-top">
+                                <div className="flex items-center gap-1.5">
+                                  <span>{order.orderNumber}</span>
+                                  {editingOrderDateId === order.id ? (
+                                    <div
+                                      className="flex items-center gap-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Input
+                                        type="date"
+                                        value={editOrderDateValue}
+                                        max={toIsoDateInputValue(new Date())}
+                                        onChange={(e) => setEditOrderDateValue(e.target.value)}
+                                        className="h-6 w-32 text-xs"
+                                      />
+                                      <Button
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        disabled={savingOrderDate}
+                                        onClick={() => saveOrderDate(order.id)}
+                                      >
+                                        {savingOrderDate ? (
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          <Check className="h-3 w-3" />
+                                        )}
+                                      </Button>
+                                      <Button
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-6 w-6"
+                                        onClick={cancelEditOrderDate}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      title="Edit order date"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        startEditOrderDate(order);
+                                      }}
+                                      className="text-muted-foreground hover:text-foreground"
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                </div>
+                                {editingOrderDateId === order.id && orderDateError && (
+                                  <p className="mt-1 text-xs text-destructive">{orderDateError}</p>
+                                )}
                               </TableCell>
-                              <TableCell className="text-sm">
+                              <TableCell className="text-sm align-top">
                                 {order.paymentMethod ?? "—"}
                               </TableCell>
-                              <TableCell
-                                className="text-sm max-w-xs truncate"
-                                title={itemsSummary}
-                              >
-                                {itemsSummary || "—"}
+                              <TableCell className="text-sm">
+                                {items.length === 0 ? (
+                                  "—"
+                                ) : (
+                                  <div className="space-y-0.5">
+                                    {items.map((it: any, idx: number) => {
+                                      const name = it.product?.name ?? "Unknown";
+                                      const unit = it.productUnit?.unit;
+                                      const qty = toNumber(it.quantity);
+                                      const unitPrice = toNumber(it.unitPrice);
+                                      return (
+                                        <div key={idx} className="flex justify-between gap-3">
+                                          <span>
+                                            {qty}
+                                            {unit ? ` ${unit}` : "x"} {name}
+                                          </span>
+                                          <span className="text-muted-foreground whitespace-nowrap">
+                                            @ {formatCurrency(unitPrice)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                               </TableCell>
-                              <TableCell className="text-right text-sm">{totalQty}</TableCell>
-                              <TableCell className="text-right font-medium">
+                              <TableCell className="text-right text-sm align-top">{totalQty}</TableCell>
+                              <TableCell className="text-right font-medium align-top">
                                 {formatCurrency(order.totalAmount)}
                               </TableCell>
                             </TableRow>

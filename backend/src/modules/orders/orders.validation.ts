@@ -55,3 +55,16 @@ export const listOrdersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(["COMPLETED", "REFUNDED", "CANCELLED"]).optional()
 });
+
+// Correcting an already-recorded order's date (e.g. it was logged under
+// the wrong day). Deliberately its own schema, not part of a general
+// "update order" — nothing else about a completed order should be
+// editable through this endpoint.
+export const updateOrderDateSchema = z.object({
+  orderDate: z
+    .string()
+    .datetime({ message: "orderDate must be an ISO date string" })
+    .refine((d) => new Date(d).getTime() <= Date.now(), {
+      message: "orderDate cannot be in the future"
+    })
+});

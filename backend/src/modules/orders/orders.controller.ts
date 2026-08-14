@@ -56,6 +56,17 @@ class OrdersController {
       successResponse(res, null, "Order cancelled");
     }
   );
+
+  updateOrderDate = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const result = await ordersService.updateOrderDate(
+        getParam(req.params.id),
+        req.body.orderDate,
+        req.user!.userId
+      );
+      successResponse(res, result, "Order date updated");
+    }
+  );
 }
 
 export default new OrdersController();

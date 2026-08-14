@@ -3,7 +3,8 @@ import ordersController from "./orders.controller";
 import ordersReceiptController from "./orders.receipt.controller";
 import {
   createOrderSchema,
-  listOrdersQuerySchema
+  listOrdersQuerySchema,
+  updateOrderDateSchema
 } from "./orders.validation";
 import { authenticate } from "../../middleware/auth.middleware";
 import { authorize } from "../../middleware/role.middleware";
@@ -38,6 +39,12 @@ router.patch(
   "/:id/cancel",
   authorize(["admin"]),
   ordersController.cancelOrder
+);
+router.patch(
+  "/:id/date",
+  authorize(["admin"]),
+  validate(updateOrderDateSchema),
+  ordersController.updateOrderDate
 );
 
 export default router;
