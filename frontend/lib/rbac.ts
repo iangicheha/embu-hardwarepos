@@ -15,6 +15,7 @@ export type AppRole = "admin" | "worker";
 export const CASHIER_ALLOWED_ROUTES = new Set<string>([
   "/pos",
   "/products",
+  "/categories",
   "/restocks",
 ]);
 

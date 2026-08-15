@@ -21,8 +21,17 @@ import {
 import { loginUser } from "@/lib/api";
 
 // Display labels only. The real role comes from the server's login response
-// (backend enum: "admin" | "worker"). The picker below is purely cosmetic.
+// (backend enum: "admin" | "worker"). The picker below used to be purely
+// cosmetic — it never affected what the server returned, so someone could
+// click "Cashier" and still be logged into an admin account with no
+// indication anything was off. Now it's checked against the account's
+// actual role after login, and blocks the login if they don't match.
 type Role = "ADMIN" | "CASHIER";
+
+const SERVER_ROLE_TO_DISPLAY: Record<string, Role> = {
+  admin: "ADMIN",
+  worker: "CASHIER",
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,6 +52,21 @@ export default function LoginPage() {
     try {
       const response = await loginUser(username, password);
       const { accessToken, refreshToken, user } = response.data;
+
+      // The picker is a claim, not a fact — verify it against what the
+      // server actually says this account is before letting the login
+      // through. Mismatches are blocked here instead of silently logging
+      // the person in under the wrong assumed role.
+      const actualDisplayRole = SERVER_ROLE_TO_DISPLAY[user.role] ?? "CASHIER";
+      if (actualDisplayRole !== role) {
+        const actualLabel = actualDisplayRole === "ADMIN" ? "Admin" : "Cashier";
+        const pickedLabel = role === "ADMIN" ? "Admin" : "Cashier";
+        setError(
+          `This account is registered as ${actualLabel}, not ${pickedLabel}. Select "${actualLabel}" above and try again.`
+        );
+        setLoading(false);
+        return;
+      }
 
       const storage = rememberMe ? window.localStorage : window.sessionStorage;
       storage.setItem("accessToken", accessToken);
