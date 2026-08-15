@@ -275,6 +275,12 @@ export async function updateOrderDate(id: string, orderDate: string) {
   });
 }
 
+export async function deleteOrder(id: string) {
+  return request<{ data: null }>(`/orders/${id}`, {
+    method: "DELETE"
+  });
+}
+
 export async function downloadReceipt(id: string) {
   const token = getAccessToken();
   const response = await fetch(

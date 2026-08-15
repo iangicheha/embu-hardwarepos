@@ -67,6 +67,16 @@ class OrdersController {
       successResponse(res, result, "Order date updated");
     }
   );
+
+  deleteOrder = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      await ordersService.deleteOrder(
+        getParam(req.params.id),
+        req.user!.userId
+      );
+      successResponse(res, null, "Order deleted");
+    }
+  );
 }
 
 export default new OrdersController();

@@ -130,11 +130,13 @@ export default function POSPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const [productsData, settingsRes] = await Promise.all([
-          fetchAllProducts(),
-          getSettings()
-        ]);
 
+        // Products and settings are fetched independently, not as a single
+        // Promise.all — settings is admin-only on the backend and 403s for
+        // a cashier, and Promise.all rejects entirely the moment ANY of its
+        // promises reject. That was taking products down with it even
+        // though the products request itself had nothing wrong with it.
+        const productsData = await fetchAllProducts();
         setProducts(productsData);
 
         const uniqueCategories = Array.from(
@@ -146,8 +148,16 @@ export default function POSPage() {
         );
         setCategories(uniqueCategories);
 
-        if (settingsRes.data?.taxRate !== undefined && settingsRes.data?.taxRate !== null) {
-          setTaxRate(toNumber(settingsRes.data.taxRate));
+        // Settings (tax rate) is a nice-to-have here, not required for the
+        // POS to function — fall back to the existing default silently if
+        // it fails (e.g. a cashier account, which can't read /settings).
+        try {
+          const settingsRes = await getSettings();
+          if (settingsRes.data?.taxRate !== undefined && settingsRes.data?.taxRate !== null) {
+            setTaxRate(toNumber(settingsRes.data.taxRate));
+          }
+        } catch (settingsErr) {
+          console.warn("Could not load settings (using default tax rate):", settingsErr);
         }
       } catch (err) {
         setError("Failed to load data");

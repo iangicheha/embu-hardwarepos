@@ -403,6 +403,41 @@ class OrdersService {
 
     return true;
   }
+
+  // Genuine, permanent removal — distinct from cancel/refund, which only
+  // change status and keep the row (and correctly so, for real transaction
+  // history). This is for cleaning up mistaken/test orders entirely. Stock
+  // is restored first (same logic as cancel), then the row is actually
+  // deleted; OrderItem rows cascade-delete via the schema.
+  async deleteOrder(id: string, userId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true }
+    });
+    if (!order) throw new AppError("Order not found", 404);
+
+    await prisma.$transaction(async (tx) => {
+      // Only COMPLETED orders still hold stock that needs restoring —
+      // a REFUNDED or CANCELLED order already had this happen once via
+      // refundOrder/cancelOrder, so restoring again here would double-credit
+      // stock that was never actually taken a second time.
+      const items =
+        order.status === "COMPLETED" ? await this.restoreStock(tx, id) : [];
+      await tx.order.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: "ORDER_DELETED",
+          details:
+            order.status === "COMPLETED"
+              ? `Order ${order.orderNumber} deleted; restored ${items.length} item(s) to stock`
+              : `Order ${order.orderNumber} deleted (was already ${order.status.toLowerCase()}, stock unaffected)`
+        }
+      });
+    });
+
+    return true;
+  }
 }
 
 export default new OrdersService();

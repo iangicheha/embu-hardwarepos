@@ -18,6 +18,7 @@ import {
   Pencil,
   Check,
   X,
+  Trash2,
 } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
 import {
@@ -55,7 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, getRestocks, updateOrderDate } from "@/lib/api";
+import { getDashboardSummary, getSuppliers, getProducts, getSalesReport, getRestocks, updateOrderDate, deleteOrder } from "@/lib/api";
 import { formatCurrency, toNumber } from "@/lib/utils";
 
 const PIE_COLORS = ["#dc2626", "#16a34a", "#f59e0b", "#2563eb"];
@@ -134,6 +135,27 @@ export default function ReportsPage() {
       setOrderDateError(err.message || "Failed to update order date");
     } finally {
       setSavingOrderDate(false);
+    }
+  }
+
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+
+  async function handleDeleteOrder(order: any) {
+    if (
+      !confirm(
+        `Permanently delete order ${order.orderNumber}? This restores its items to stock and cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    try {
+      setDeletingOrderId(order.id);
+      await deleteOrder(order.id);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      setOrderDateError(err.message || "Failed to delete order");
+    } finally {
+      setDeletingOrderId(null);
     }
   }
 
@@ -815,6 +837,24 @@ export default function ReportsPage() {
                                       className="text-muted-foreground hover:text-foreground"
                                     >
                                       <Pencil className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                  {editingOrderDateId !== order.id && (
+                                    <button
+                                      type="button"
+                                      title="Delete order"
+                                      disabled={deletingOrderId === order.id}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteOrder(order);
+                                      }}
+                                      className="text-muted-foreground hover:text-destructive"
+                                    >
+                                      {deletingOrderId === order.id ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-3 w-3" />
+                                      )}
                                     </button>
                                   )}
                                 </div>

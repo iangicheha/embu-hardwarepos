@@ -46,5 +46,10 @@ router.patch(
   validate(updateOrderDateSchema),
   ordersController.updateOrderDate
 );
+router.delete(
+  "/:id",
+  authorize(["admin"]),
+  ordersController.deleteOrder
+);
 
 export default router;
