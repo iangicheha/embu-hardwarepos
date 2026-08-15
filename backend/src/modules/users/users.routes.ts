@@ -63,4 +63,10 @@ router.patch(
   usersController.deactivateUser
 );
 
+router.delete(
+  "/:id",
+  authorize(["admin"]),
+  usersController.deleteUser
+);
+
 export default router;

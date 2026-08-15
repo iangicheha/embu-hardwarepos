@@ -460,6 +460,7 @@ export async function getUser(id: string) {
 
 export async function createUser(data: {
   fullName: string;
+  username: string;
   email: string;
   phone?: string;
   password: string;
@@ -482,6 +483,12 @@ export async function updateUser(
   return request<{ data: User }>(`/users/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data)
+  });
+}
+
+export async function deleteUser(id: string) {
+  return request<{ data: null }>(`/users/${id}`, {
+    method: "DELETE"
   });
 }
 

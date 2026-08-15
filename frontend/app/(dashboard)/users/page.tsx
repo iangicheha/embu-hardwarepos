@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, MoreHorizontal, Pencil, UserX, Loader2 } from "lucide-react";
-import { getUsers, createUser, deactivateUser, activateUser } from "@/lib/api";
+import { Plus, MoreHorizontal, Pencil, UserX, Trash2, Loader2 } from "lucide-react";
+import { getUsers, createUser, updateUser, deleteUser, deactivateUser, activateUser } from "@/lib/api";
 import type { UserRole, UserStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,17 +49,30 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     fullName: string;
+    username: string;
     email: string;
     phone: string;
     password: string;
     role: "admin" | "worker";
   }>({
     fullName: "",
+    username: "",
     email: "",
     phone: "",
     password: "",
     role: "worker"
   });
+
+  // Edit dialog — separate from the create dialog above since editing only
+  // touches fullName/phone/role (username, email, and password aren't
+  // editable here; matches what users.validation.ts's updateUserSchema
+  // actually accepts).
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ fullName: "", phone: "", role: "worker" as "admin" | "worker" });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadUsers() {
@@ -85,11 +98,54 @@ export default function UsersPage() {
       const res = await getUsers(1, 100);
       setUsers(res.data.users || []);
       setDialogOpen(false);
-      setFormData({ fullName: "", email: "", phone: "", password: "", role: "worker" });
+      setFormData({ fullName: "", username: "", email: "", phone: "", password: "", role: "worker" });
     } catch (err: any) {
       setError(err.message || "Failed to create user");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function startEditUser(user: any) {
+    setEditError(null);
+    setEditingUser(user);
+    setEditForm({
+      fullName: user.fullName ?? "",
+      phone: user.phone ?? "",
+      role: user.role === "admin" ? "admin" : "worker"
+    });
+  }
+
+  async function handleSaveEditUser() {
+    if (!editingUser) return;
+    try {
+      setEditSubmitting(true);
+      setEditError(null);
+      await updateUser(editingUser.id, editForm);
+      const res = await getUsers(1, 100);
+      setUsers(res.data.users || []);
+      setEditingUser(null);
+    } catch (err: any) {
+      setEditError(err.message || "Failed to update user");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }
+
+  async function handleDeleteUser(id: string) {
+    if (!confirm("Delete this user permanently? This cannot be undone.")) return;
+    try {
+      setDeletingId(id);
+      setError(null);
+      await deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err: any) {
+      // Most likely cause: the backend refuses to delete a user with order/
+      // restock history (preserves that history) — the error message from
+      // the service explains this directly, so just surface it as-is.
+      setError(err.message || "Failed to delete user");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -155,6 +211,16 @@ export default function UsersPage() {
                 />
               </div>
               <div className="grid gap-2">
+                <Label>Username</Label>
+                <Input
+                  placeholder="Used to log in"
+                  value={formData.username}
+                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label>Email</Label>
                 <Input 
                   type="email" 
@@ -205,6 +271,61 @@ export default function UsersPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit dialog — separate from Create above. Username/email/password
+          aren't editable here, matching the backend's updateUserSchema. */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {editError && (
+              <div className="rounded-lg bg-destructive/10 p-3 text-destructive text-sm">
+                {editError}
+              </div>
+            )}
+            <div className="grid gap-2">
+              <Label>Full Name</Label>
+              <Input
+                value={editForm.fullName}
+                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Phone</Label>
+              <Input
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Role</Label>
+              <Select
+                value={editForm.role}
+                onValueChange={(v) => setEditForm({ ...editForm, role: v as "admin" | "worker" })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="worker">Worker</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)} disabled={editSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEditUser} disabled={editSubmitting}>
+              {editSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardContent className="p-0">
@@ -258,7 +379,7 @@ export default function UsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => startEditUser(user)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit User
                         </DropdownMenuItem>
@@ -278,6 +399,18 @@ export default function UsersPage() {
                             Activate User
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          className="text-danger"
+                          disabled={deletingId === user.id}
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          {deletingId === user.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                          )}
+                          Delete User
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

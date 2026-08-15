@@ -17,6 +17,7 @@ const userPublicSelect = {
 
 type CreateUserInput = {
   fullName: string;
+  username: string;
   email: string;
   phone?: string;
   password: string;
@@ -85,9 +86,16 @@ class UsersService {
 
   async createUser(data: CreateUserInput, createdBy: string) {
     const email = data.email.toLowerCase();
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const username = data.username.toLowerCase();
+
+    // Login looks accounts up by username, not email — checking both here
+    // (like auth.service.ts's register() already does) so a collision on
+    // either one is caught before create, not as an opaque DB error.
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] }
+    });
     if (existing) {
-      throw new AppError("User with this email already exists", 409);
+      throw new AppError("User with this email or username already exists", 409);
     }
 
     const passwordHash = await bcrypt.hash(
@@ -99,6 +107,7 @@ class UsersService {
       const created = await tx.user.create({
         data: {
           fullName: data.fullName.trim(),
+          username,
           email,
           phone: data.phone,
           passwordHash,
@@ -260,6 +269,48 @@ class UsersService {
           userId: adminId,
           action: "USER_ACTIVATED",
           details: `Activated user ${user.email}`
+        }
+      });
+    });
+
+    return true;
+  }
+
+  async deleteUser(id: string, adminId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true }
+    });
+    if (!user) throw new AppError("User not found", 404);
+    if (id === adminId) {
+      throw new AppError("You cannot delete your own account", 400);
+    }
+
+    // Order.createdById and Restock.receivedById have no cascade behavior,
+    // so the DB itself refuses this delete once the user has any sales or
+    // restock history — deleting them would otherwise orphan/corrupt that
+    // history. Check up front so the error is clear instead of a raw DB
+    // constraint failure, and so the audit log write below never runs for
+    // a delete that didn't actually happen.
+    const [orderCount, restockCount] = await Promise.all([
+      prisma.order.count({ where: { createdById: id } }),
+      prisma.restock.count({ where: { receivedById: id } })
+    ]);
+    if (orderCount > 0 || restockCount > 0) {
+      throw new AppError(
+        "This user has order or restock history and can't be deleted — deactivate the account instead to preserve that history.",
+        409
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.refreshToken.deleteMany({ where: { userId: id } });
+      await tx.user.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: "USER_DELETED",
+          details: `Deleted user ${user.email}`
         }
       });
     });

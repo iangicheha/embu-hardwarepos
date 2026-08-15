@@ -98,6 +98,22 @@ class UsersController {
       successResponse(res, null, "User activated");
     }
   );
+
+  deleteUser = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+      if (getParam(req.params.id) === req.user!.userId) {
+        throw new AppError(
+          "You cannot delete your own account",
+          400
+        );
+      }
+      await usersService.deleteUser(
+        getParam(req.params.id),
+        req.user!.userId
+      );
+      successResponse(res, null, "User deleted");
+    }
+  );
 }
 
 export default new UsersController();
