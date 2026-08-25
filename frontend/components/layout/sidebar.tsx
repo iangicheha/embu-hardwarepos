@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/pos", label: "Orders", icon: ShoppingCart },
+  { href: "/pos", label: "Sales", icon: ShoppingCart },
   { href: "/products", label: "Products", icon: Package },
   { href: "/categories", label: "Categories", icon: Tags },
   { href: "/suppliers", label: "Suppliers", icon: Truck },

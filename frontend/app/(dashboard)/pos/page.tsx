@@ -560,25 +560,6 @@ export default function POSPage() {
               {/* Totals and payment – compact, at bottom */}
               <div className="shrink-0 space-y-3">
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Discount</span>
-                    <Input
-                      type="number"
-                      value={discount}
-                      onChange={(e) => setDiscount(Number(e.target.value))}
-                      className="h-6 w-20 text-right text-sm"
-                      min={0}
-                    />
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax ({taxRate}% included)</span>
-                    <span>{formatCurrency(0)}</span>
-                  </div>
-                  <Separator />
                   <div className="flex justify-between text-base font-bold">
                     <span>Grand Total</span>
                     <span className="text-primary">{formatCurrency(grandTotal)}</span>
