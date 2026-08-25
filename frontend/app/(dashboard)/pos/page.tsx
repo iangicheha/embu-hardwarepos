@@ -363,7 +363,7 @@ export default function POSPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Orders</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Sales</h2>
         <p className="text-muted-foreground">Process sales and manage transactions</p>
       </div>
 
@@ -472,7 +472,7 @@ export default function POSPage() {
 
         {/* Cart – right 2 columns – increased height */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-16 flex h-[calc(100vh-5rem)] flex-col overflow-hidden">
+          <Card className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden">
             <CardHeader className="py-2 px-4 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
