@@ -318,32 +318,133 @@ export default function ProductsPage() {
     try {
       setExporting("excel");
       setError(null);
-      const XLSX = await import("xlsx");
+      const ExcelJS = (await import("exceljs")).default;
+      const { getSettings, getOrders, getRestocks } = await import("@/lib/api");
 
-      const rows = filtered.map((p) => ({
-        "Product Code": p.productCode,
-        "Name": p.name,
-        "Category": p.category?.name ?? "Uncategorized",
-        "Supplier": p.supplier?.supplierName ?? "—",
-        "Buying Price (KES)": toNumber(p.buyingPrice),
-        "Selling Price (KES)": primaryPrice(p),
-        "Stock": `${toNumber(p.quantity)} ${p.baseUnit}`,
-        "Reorder Level": p.reorderLevel,
-        "Status": deriveStatus(toNumber(p.quantity), toNumber(p.reorderLevel)),
-      }));
+      const [settingsRes, ordersRes, restocksRes] = await Promise.all([
+        getSettings().catch(() => null),
+        // All-time — this page has no date-range picker, so "Sold"/"Added"
+        // here mean lifetime totals, not a period. A high limit stands in
+        // for a dedicated aggregate endpoint; fine for a single hardware
+        // store's order volume, but will need real pagination if this
+        // catalog's order history grows into the tens of thousands.
+        getOrders(1, 5000).catch(() => null),
+        getRestocks(1, 5000).catch(() => null),
+      ]);
 
-      const worksheet = XLSX.utils.json_to_sheet(rows);
-      // Reasonable column widths so it doesn't look like a raw data dump.
-      worksheet["!cols"] = [
-        { wch: 14 }, { wch: 32 }, { wch: 22 }, { wch: 22 },
-        { wch: 16 }, { wch: 16 }, { wch: 9 }, { wch: 12 }, { wch: 13 },
+      const businessName = settingsRes?.data?.businessName || "Hardware Store";
+      const generatedAt = new Date();
+      const allOrders = ordersRes?.data?.orders ?? [];
+      const allRestocks = restocksRes?.data?.restocks ?? [];
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = businessName;
+      workbook.created = generatedAt;
+
+      const HEADER_FONT = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+      const HEADER_FILL: any = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDC2626" } };
+      const TITLE_FONT = { bold: true, size: 16, color: { argb: "FFDC2626" } };
+      const SUBTITLE_FONT = { italic: true, size: 10, color: { argb: "FF64748B" } };
+
+      const sheet = workbook.addWorksheet("Master Stock Report");
+      const columns = [
+        { header: "Product", key: "name", width: 30 },
+        { header: "Selling Price (VALUE)", key: "value", width: 18 },
+        { header: "Buying Price (COST)", key: "cost", width: 18 },
+        { header: "Added (Restocked, all-time)", key: "added", width: 20 },
+        { header: "Sold (all-time)", key: "sold", width: 14 },
+        { header: "Balance (Current Stock)", key: "balance", width: 18 },
+        { header: "Sold Value", key: "soldValue", width: 16 },
+        { header: "Sold Cost Value (COGS)", key: "soldCost", width: 18 },
+        { header: "Profit/Unit", key: "profitUnit", width: 14 },
+        { header: "Total Profit", key: "totalProfit", width: 16 },
+        { header: "Profit Margin %", key: "margin", width: 15 },
       ];
+      sheet.columns = columns;
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+      sheet.mergeCells(1, 1, 1, columns.length);
+      const titleCell = sheet.getCell(1, 1);
+      titleCell.value = businessName;
+      titleCell.font = TITLE_FONT;
 
-      const dateStr = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(workbook, `products-${dateStr}.xlsx`);
+      sheet.mergeCells(2, 1, 2, columns.length);
+      const subtitleCell = sheet.getCell(2, 1);
+      subtitleCell.value = `Master Stock Report (all products, all-time) — Generated ${generatedAt.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}`;
+      subtitleCell.font = SUBTITLE_FONT;
+      sheet.getRow(1).height = 24;
+
+      const headerRowNum = 4;
+      sheet.getRow(headerRowNum).values = columns.map((c) => c.header);
+      const headerRow = sheet.getRow(headerRowNum);
+      headerRow.eachCell((cell) => {
+        cell.font = HEADER_FONT;
+        cell.fill = HEADER_FILL;
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      });
+      headerRow.height = 20;
+
+      // Sold per product, all-time, in base units.
+      const soldByProduct = new Map<string, number>();
+      const soldValueByProduct = new Map<string, number>();
+      for (const o of allOrders) {
+        for (const it of o.items ?? []) {
+          const pid = it.productId ?? it.product?.id;
+          if (!pid) continue;
+          const conv = it.productUnit?.conversionToBase != null ? toNumber(it.productUnit.conversionToBase) : 1;
+          const baseQty = toNumber(it.quantity) * conv;
+          soldByProduct.set(pid, (soldByProduct.get(pid) ?? 0) + baseQty);
+          soldValueByProduct.set(pid, (soldValueByProduct.get(pid) ?? 0) + toNumber(it.unitPrice) * toNumber(it.quantity));
+        }
+      }
+
+      // Added per product, all-time. NOTE: assumes Restock.quantityAdded is
+      // already in base units — will under/overstate this for products
+      // restocked by a non-base unit (e.g. cement by the bag) until restocks
+      // get the same productUnitId/conversionToBase treatment orders have.
+      const addedByProduct = new Map<string, number>();
+      for (const r of allRestocks) {
+        const pid = r.productId ?? r.product?.id;
+        if (!pid) continue;
+        addedByProduct.set(pid, (addedByProduct.get(pid) ?? 0) + toNumber(r.quantityAdded));
+      }
+
+      // Every product in the catalog — not filtered to ones with activity,
+      // per "the master file should showcase everything, all stocks."
+      let rowNum = headerRowNum + 1;
+      for (const p of filtered) {
+        const sold = soldByProduct.get(p.id) ?? 0;
+        const added = addedByProduct.get(p.id) ?? 0;
+        const value = primaryPrice(p);
+        const cost = toNumber(p.buyingPrice);
+        const balance = toNumber(p.quantity);
+        const soldValue = soldValueByProduct.get(p.id) ?? sold * value;
+        const soldCost = sold * cost;
+        const profitUnit = value - cost;
+        const totalProfit = profitUnit * sold;
+        const margin = value > 0 ? (profitUnit / value) * 100 : 0;
+
+        const row = sheet.getRow(rowNum);
+        row.values = [p.name, value, cost, added, sold, balance, soldValue, soldCost, profitUnit, totalProfit, margin];
+        row.getCell(2).numFmt = '"KES" #,##0';
+        row.getCell(3).numFmt = '"KES" #,##0';
+        row.getCell(7).numFmt = '"KES" #,##0';
+        row.getCell(8).numFmt = '"KES" #,##0';
+        row.getCell(9).numFmt = '"KES" #,##0';
+        row.getCell(10).numFmt = '"KES" #,##0';
+        row.getCell(11).numFmt = '0.0"%"';
+        if (totalProfit < 0) row.getCell(10).font = { color: { argb: "FFDC2626" } };
+        rowNum += 1;
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const dateStr = generatedAt.toISOString().slice(0, 10);
+      a.download = `master-stock-report-${dateStr}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err: any) {
       setError(err.message || "Failed to export Excel file");
     } finally {
