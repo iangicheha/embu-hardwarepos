@@ -472,7 +472,7 @@ export default function POSPage() {
 
         {/* Cart – right 2 columns – increased height */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden">
+          <Card className="sticky top-4 flex h-[calc(100dvh-2rem)] flex-col overflow-hidden">
             <CardHeader className="py-2 px-4 shrink-0">
               <CardTitle className="text-base">Current Cart</CardTitle>
             </CardHeader>
@@ -557,8 +557,10 @@ export default function POSPage() {
 
               <Separator className="my-2 shrink-0" />
 
-              {/* Totals and payment – compact, at bottom */}
-              <div className="shrink-0 space-y-3">
+              {/* Totals and payment – pinned to the bottom so Complete Sale
+                  is always visible without scrolling, even if the item
+                  list above grows past the visible area. */}
+              <div className="sticky bottom-0 shrink-0 space-y-3 bg-card pt-2">
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between text-base font-bold">
                     <span>Grand Total</span>
